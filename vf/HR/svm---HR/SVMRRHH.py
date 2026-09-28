@@ -1,4 +1,13 @@
 import os
+import sys
+
+if 'TCL_LIBRARY' not in os.environ or 'TK_LIBRARY' not in os.environ:
+    base_prefix = getattr(sys, 'base_prefix', sys.prefix)
+    tcl_cand = os.path.join(base_prefix, 'tcl', 'tcl8.6')
+    tk_cand = os.path.join(base_prefix, 'tcl', 'tk8.6')
+    if os.path.exists(tcl_cand): os.environ['TCL_LIBRARY'] = tcl_cand
+    if os.path.exists(tk_cand): os.environ['TK_LIBRARY'] = tk_cand
+
 import tkinter as tk
 from tkinter import ttk
 import pandas as pd
@@ -187,7 +196,7 @@ def crear_interfaz_svm_lineal(parent_widget):
     tab1 = ttk.Frame(notebook)
     notebook.add(tab1, text='  Línea de Decisión (Hiperplano)  ')
     
-    pan1 = tk.PanedWindow(tab1, orient='horizontal', bg='#1e1e2e', bd=0)
+    pan1 = ttk.PanedWindow(tab1, orient='horizontal')
     pan1.pack(fill='both', expand=True)
     
     left_frame1 = tk.Frame(pan1, bg='#1e1e2e')
@@ -220,7 +229,7 @@ def crear_interfaz_svm_lineal(parent_widget):
     tab2 = ttk.Frame(notebook)
     notebook.add(tab2, text='  Frontera de Decisión (Significativos)  ')
     
-    pan2 = tk.PanedWindow(tab2, orient='horizontal', bg='#1e1e2e', bd=0)
+    pan2 = ttk.PanedWindow(tab2, orient='horizontal')
     pan2.pack(fill='both', expand=True)
     
     left_frame2 = tk.Frame(pan2, bg='#1e1e2e')
@@ -276,19 +285,21 @@ def crear_interfaz_svm_lineal(parent_widget):
         for spine in ax.spines.values():
             spine.set_edgecolor('#313244')
             
-    sns.heatmap(cm_1, annot=True, fmt='d', cmap='Blues', ax=ax3a, cbar=False,
+    sns.heatmap(cm_1, annot=True, fmt='d', cmap='Blues', ax=ax3a, cbar=False, square=True,
                 xticklabels=['Activo', 'Termin'], yticklabels=['Activo', 'Termin'],
                 annot_kws={'size': 14, 'weight': 'bold'})
     ax3a.set_title('CM 1: Modelo Lineal Completo', fontsize=10, fontweight='bold', color='#cdd6f4', pad=8)
     ax3a.set_xlabel('Predicción', color='#cdd6f4', fontsize=8)
     ax3a.set_ylabel('Valor Real', color='#cdd6f4', fontsize=8)
+    ax3a.set_box_aspect(1)
     
-    sns.heatmap(cm_2, annot=True, fmt='d', cmap='Oranges', ax=ax3b, cbar=False,
+    sns.heatmap(cm_2, annot=True, fmt='d', cmap='Oranges', ax=ax3b, cbar=False, square=True,
                 xticklabels=['Activo', 'Termin'], yticklabels=['Activo', 'Termin'],
                 annot_kws={'size': 14, 'weight': 'bold'})
     ax3b.set_title(f'CM 2: Lineal Significativos (x{SEPARACION_MULT})', fontsize=10, fontweight='bold', color='#cdd6f4', pad=8)
     ax3b.set_xlabel('Predicción', color='#cdd6f4', fontsize=8)
     ax3b.set_ylabel('Valor Real', color='#cdd6f4', fontsize=8)
+    ax3b.set_box_aspect(1)
     
     # Gráfica de Barras Comparativa
     m_names = ['Exactitud', 'Precisión', 'Recall', 'F1-Score']
