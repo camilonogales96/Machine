@@ -19,8 +19,31 @@ warnings.filterwarnings('ignore', category=ConvergenceWarning)
 # ==========================================
 # 1. CARGA, LIMPIEZA Y ENTRENAMIENTO DE MODELOS
 # ==========================================
-# Cargar el dataset de Recursos Humanos (Asegúrate de que el archivo esté en la misma carpeta)
-df_raw = pd.read_csv("HRDataset_v14.csv")
+# Cargar el dataset de Recursos Humanos (Búsqueda dinámica en carpetas padre)
+import os
+
+directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
+curr = directorio_actual
+ruta_origen = None
+
+while curr:
+    candidato = os.path.join(curr, 'HRDataset_v14.csv')
+    if os.path.exists(candidato):
+        ruta_origen = candidato
+        break
+    parent = os.path.dirname(curr)
+    if parent == curr:
+        break
+    curr = parent
+
+if not ruta_origen:
+    candidato_cwd = os.path.join(os.getcwd(), 'HRDataset_v14.csv')
+    if os.path.exists(candidato_cwd):
+        ruta_origen = candidato_cwd
+    else:
+        ruta_origen = os.path.join(directorio_actual, 'HRDataset_v14.csv')
+
+df_raw = pd.read_csv(ruta_origen)
 
 # Seleccionamos 4 características numéricas relevantes y nuestra variable objetivo
 feature_names = ['Salary', 'EngagementSurvey', 'EmpSatisfaction', 'Absences']

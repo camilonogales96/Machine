@@ -16,18 +16,26 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
 # 1. Carga y preprocesamiento de datos
-directorio_actual = os.path.dirname(os.path.abspath(__file__))
+directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
+curr = directorio_actual
+ruta_origen = None
 
-# Definir posibles rutas del dataset (para evitar errores de ruta no encontrada)
-ruta_subdirectorio = os.path.join(directorio_actual, 'Dataset', 'human_resources', 'HRDataset_v14.csv')
-ruta_local = os.path.join(directorio_actual, 'HRDataset_v14.csv')
+while curr:
+    candidato = os.path.join(curr, 'HRDataset_v14.csv')
+    if os.path.exists(candidato):
+        ruta_origen = candidato
+        break
+    parent = os.path.dirname(curr)
+    if parent == curr:
+        break
+    curr = parent
 
-if os.path.exists(ruta_subdirectorio):
-    ruta_origen = ruta_subdirectorio
-elif os.path.exists(ruta_local):
-    ruta_origen = ruta_local
-else:
-    raise FileNotFoundError("No se encontró el archivo HRDataset_v14.csv en el directorio local ni en Dataset/human_resources/")
+if not ruta_origen:
+    candidato_cwd = os.path.join(os.getcwd(), 'HRDataset_v14.csv')
+    if os.path.exists(candidato_cwd):
+        ruta_origen = candidato_cwd
+    else:
+        ruta_origen = os.path.join(directorio_actual, 'HRDataset_v14.csv')
 
 datos_hr = pd.read_csv(ruta_origen)
 
