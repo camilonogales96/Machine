@@ -28,22 +28,31 @@ from sklearn.decomposition import PCA
 # ---------------------------------------------------------------
 def cargar_datos_hr_limpios():
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
-    base_proj = os.path.abspath(os.path.join(directorio_actual, '..', '..', '..'))
-    
-    rutas_limpio = [
-        os.path.join(base_proj, 'dataset_hr_limpio.csv'),
-        os.path.join(directorio_actual, 'dataset_hr_limpio.csv'),
-        os.path.join(directorio_actual, '..', 'dataset_hr_limpio.csv'),
-        os.path.join(directorio_actual, '..', '..', 'dataset_hr_limpio.csv'),
-    ]
-    rutas_raw = [
-        os.path.join(base_proj, 'HRDataset_v14.csv'),
-        os.path.join(directorio_actual, 'HRDataset_v14.csv'),
-        os.path.join(directorio_actual, '..', 'HRDataset_v14.csv'),
-    ]
-    
-    ruta_limpio = next((r for r in rutas_limpio if os.path.exists(r)), None)
-    ruta_raw = next((r for r in rutas_raw if os.path.exists(r)), None)
+    curr = directorio_actual
+    ruta_limpio = None
+    ruta_raw = None
+
+    while curr:
+        cand_limpio = os.path.join(curr, 'dataset_hr_limpio.csv')
+        cand_raw = os.path.join(curr, 'HRDataset_v14.csv')
+        if not ruta_limpio and os.path.exists(cand_limpio):
+            ruta_limpio = cand_limpio
+        if not ruta_raw and os.path.exists(cand_raw):
+            ruta_raw = cand_raw
+        if ruta_limpio or ruta_raw:
+            break
+        parent = os.path.dirname(curr)
+        if parent == curr:
+            break
+        curr = parent
+
+    if not ruta_limpio and not ruta_raw:
+        cand_limpio_cwd = os.path.join(os.getcwd(), 'dataset_hr_limpio.csv')
+        cand_raw_cwd = os.path.join(os.getcwd(), 'HRDataset_v14.csv')
+        if os.path.exists(cand_limpio_cwd):
+            ruta_limpio = cand_limpio_cwd
+        elif os.path.exists(cand_raw_cwd):
+            ruta_raw = cand_raw_cwd
 
     if ruta_limpio:
         df = pd.read_csv(ruta_limpio)
