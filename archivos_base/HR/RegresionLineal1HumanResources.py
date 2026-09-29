@@ -262,16 +262,18 @@ for fila in filas_metricas:
 
 tree.pack(fill="x", padx=5, pady=5)
 
-# Cuadro explicativo
-frame_info = ttk.LabelFrame(tab2, text=" Explicación del Ajuste ")
+# Cuadro explicativo actualizado con la retroalimentación del líder
+frame_info = ttk.LabelFrame(tab2, text=" Explicación del Ajuste y Selección de Variables ")
 frame_info.pack(fill="x", padx=10, pady=5)
 
-txt_info = tk.Text(frame_info, wrap="word", font=("Arial", 9), height=4)
+# Se incrementó la altura (height=6) para acomodar el nuevo texto sin que se corte
+txt_info = tk.Text(frame_info, wrap="word", font=("Arial", 9), height=6)
 txt_info.pack(fill="both", expand=True, padx=5, pady=5)
 
-explicacion = """• Alineación 1:1: Al incorporar las variables categóricas orgánicas (DeptID/PositionID) mediante One-Hot Encoding, el modelo captura la base salarial real, haciendo que la predicción se alinee a la diagonal.
-• Regularización Ridge: Previene el sobreajuste al penalizar coeficientes excesivos, mejorando la generalización en el conjunto de prueba (Test).
-• Coeficiente R²: Cuanto más cercano a 1.0 esté el R², menor es la dispersión vertical de los puntos sobre la línea punteada."""
+explicacion = """• Variables Significativas (Agregadas): 'PositionID' (Cargo) y 'DeptID' (Departamento) resultaron ser los predictores más fuertes, ya que definen la base salarial estructural del empleado.
+• Variables Descartadas: Se omitieron identificadores (Employee_Name, EmpID), datos demográficos/fechas (DOB, DateofHire) y texto libre, ya que introducen ruido algorítmico y no aportan relación matemática directa al salario.
+• Alineación 1:1: Al incorporar las variables categóricas mediante One-Hot Encoding, el modelo corrige su sesgo, logrando que las predicciones se alineen de forma óptima a la diagonal real.
+• Regularización Ridge y R²: Previene el sobreajuste penalizando coeficientes excesivos. Un R² más cercano a 1.0 refleja menor dispersión y mayor fiabilidad del ajuste."""
 
 txt_info.insert("1.0", explicacion)
 txt_info.config(state="disabled")
