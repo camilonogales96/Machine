@@ -107,10 +107,10 @@ X_train_pca = pca_full.fit_transform(X_entrenar)
 modelo_2d_full = SVC(kernel='rbf', C=1.0, gamma='scale', random_state=77)
 modelo_2d_full.fit(X_train_pca, y_entrenar)
 
-margen1 = 18.0
+margen1 = 1.5
 x1_min, x1_max = X_train_pca[:, 0].min() - margen1, X_train_pca[:, 0].max() + margen1
 y1_min, y1_max = X_train_pca[:, 1].min() - margen1, X_train_pca[:, 1].max() + margen1
-xx1, yy1 = np.meshgrid(np.arange(x1_min, x1_max, 0.3), np.arange(y1_min, y1_max, 0.3))
+xx1, yy1 = np.meshgrid(np.arange(x1_min, x1_max, 0.15), np.arange(y1_min, y1_max, 0.15))
 Z1 = modelo_2d_full.predict(np.c_[xx1.ravel(), yy1.ravel()]).reshape(xx1.shape)
 
 # ---------------------------------------------------------------
@@ -157,10 +157,10 @@ prec2 = tp2 / (tp2 + fp2) if (tp2 + fp2) else 0
 f1_2 = (2 * prec2 * rec2) / (prec2 + rec2) if (prec2 + rec2) else 0
 fbeta2 = ((1 + beta**2) * prec2 * rec2) / (beta**2 * prec2 + rec2) if (beta**2 * prec2 + rec2) else 0
 
-margen_f = 25.0
+margen_f = 5.0
 xf_min, xf_max = X_sep_train[:, 0].min() - margen_f, X_sep_train[:, 0].max() + margen_f
 yf_min, yf_max = X_sep_train[:, 1].min() - margen_f, X_sep_train[:, 1].max() + margen_f
-xx_f, yy_f = np.meshgrid(np.arange(xf_min, xf_max, 0.3), np.arange(yf_min, yf_max, 0.3))
+xx_f, yy_f = np.meshgrid(np.arange(xf_min, xf_max, 0.2), np.arange(yf_min, yf_max, 0.2))
 Z_f = modelo_sig_2d.predict(np.c_[xx_f.ravel(), yy_f.ravel()]).reshape(xx_f.shape)
 
 

@@ -106,11 +106,13 @@ modelo_2d_full.fit(X_train_pca, y_entrenar)
 
 w1 = modelo_2d_full.coef_[0]
 b1 = modelo_2d_full.intercept_[0]
-margen1 = 18.0
+margen1 = 1.5
 x1_min, x1_max = X_train_pca[:, 0].min() - margen1, X_train_pca[:, 0].max() + margen1
 y1_min, y1_max = X_train_pca[:, 1].min() - margen1, X_train_pca[:, 1].max() + margen1
 x1_pts = np.linspace(x1_min, x1_max, 300)
 y1_recta = (-w1[0] * x1_pts - b1) / w1[1]
+y1_margen_sup = (-w1[0] * x1_pts - b1 + 1) / w1[1]
+y1_margen_inf = (-w1[0] * x1_pts - b1 - 1) / w1[1]
 
 # ---------------------------------------------------------------
 # MODELO 2: SVM LINEAL SIGNIFICATIVOS (SEPARACION MULT = 5.5)
@@ -158,11 +160,13 @@ fbeta2 = ((1 + beta**2) * prec2 * rec2) / (beta**2 * prec2 + rec2) if (beta**2 *
 
 w_f = modelo_sig_2d.coef_[0]
 b_f = modelo_sig_2d.intercept_[0]
-margen_lf = 25.0
+margen_lf = 5.0
 xf_min, xf_max = X_sep_train[:, 0].min() - margen_lf, X_sep_train[:, 0].max() + margen_lf
 yf_min, yf_max = X_sep_train[:, 1].min() - margen_lf, X_sep_train[:, 1].max() + margen_lf
 xf_pts = np.linspace(xf_min, xf_max, 300)
 yf_recta = (-w_f[0] * xf_pts - b_f) / w_f[1]
+yf_msup = (-w_f[0] * xf_pts - b_f + 1) / w_f[1]
+yf_minf = (-w_f[0] * xf_pts - b_f - 1) / w_f[1]
 
 def crear_panel_metricas(parent, titulo_sub, metrics_tuple):
     (acc, err, rec, spec, prec, f1, fbeta) = metrics_tuple
@@ -218,11 +222,17 @@ def crear_interfaz_svm_lineal(parent_widget):
     ax1.set_facecolor('#1e1e2e')
     ax1.fill_between(x1_pts, np.clip(y1_recta, y1_min, y1_max), y1_max, alpha=0.25, color='#6baed6')
     ax1.fill_between(x1_pts, y1_min, np.clip(y1_recta, y1_min, y1_max), alpha=0.25, color='#fb6a4a')
-    sc1 = ax1.scatter(X_train_pca[:, 0], X_train_pca[:, 1], c=y_entrenar, cmap=plt.cm.coolwarm, edgecolors='#cdd6f4', linewidths=0.4, zorder=3)
-    ax1.plot(x1_pts, y1_recta, 'w-', linewidth=2.5, label='Hiperplano de Decisión')
+    sc1 = ax1.scatter(X_train_pca[:, 0], X_train_pca[:, 1], c=y_entrenar, cmap=plt.cm.coolwarm, edgecolors='#cdd6f4', linewidths=0.4, alpha=0.85, zorder=3)
+    ax1.plot(x1_pts, y1_recta, 'w-', linewidth=2.5, label='Línea Recta de Decisión (Hiperplano)', zorder=4)
+    ax1.plot(x1_pts, y1_margen_sup, 'w--', linewidth=1.2, label='Márgenes (w·x + b = ±1)', zorder=4)
+    ax1.plot(x1_pts, y1_margen_inf, 'w--', linewidth=1.2, zorder=4)
+    
+    sv_full = modelo_2d_full.support_vectors_
+    ax1.scatter(sv_full[:, 0], sv_full[:, 1], s=120, facecolors='none', edgecolors='#f9e2af', linewidths=1.6, zorder=5, label='Vectores de Soporte')
+    
     ax1.set_xlim(x1_min, x1_max)
     ax1.set_ylim(y1_min, y1_max)
-    ax1.set_title('SVM Lineal: Hiperplano de Decisión (Modelo Completo)', fontsize=11, fontweight='bold', color='#cdd6f4', pad=10)
+    ax1.set_title('Modelo SVM Lineal: Línea Recta de Decisión y Márgenes', fontsize=11, fontweight='bold', color='#cdd6f4', pad=10)
     ax1.set_xlabel('Componente Principal 1', color='#cdd6f4', fontsize=9)
     ax1.set_ylabel('Componente Principal 2', color='#cdd6f4', fontsize=9)
     ax1.tick_params(colors='#cdd6f4', labelsize=8)
@@ -268,12 +278,19 @@ def crear_interfaz_svm_lineal(parent_widget):
     ax2b.fill_between(xf_pts, np.clip(yf_recta, yf_min, yf_max), yf_max, alpha=0.25, color='#6baed6')
     ax2b.fill_between(xf_pts, yf_min, np.clip(yf_recta, yf_min, yf_max), alpha=0.25, color='#fb6a4a')
     sc2 = ax2b.scatter(X_sep_train[:, 0], X_sep_train[:, 1], c=y_entrenar, cmap=plt.cm.coolwarm, edgecolors='#cdd6f4', linewidths=0.4, alpha=0.9, zorder=3)
-    ax2b.plot(xf_pts, yf_recta, 'w-', linewidth=2.0)
+    ax2b.plot(xf_pts, yf_recta, 'w-', linewidth=2.0, label='Hiperplano', zorder=4)
+    ax2b.plot(xf_pts, yf_msup, 'w--', linewidth=1.0, label='Márgenes', zorder=4)
+    ax2b.plot(xf_pts, yf_minf, 'w--', linewidth=1.0, zorder=4)
+    
+    sv_sig = modelo_sig_2d.support_vectors_
+    ax2b.scatter(sv_sig[:, 0], sv_sig[:, 1], s=110, facecolors='none', edgecolors='#f9e2af', linewidths=1.6, zorder=5, label='Vectores Soporte')
+    
     ax2b.set_xlim(xf_min, xf_max)
     ax2b.set_ylim(yf_min, yf_max)
     ax2b.set_title(f'Frontera Lineal (Significativos x{SEPARACION_MULT})', fontsize=9, fontweight='bold', color='#cdd6f4', pad=8)
     ax2b.set_xlabel('Componente Principal 1', color='#cdd6f4', fontsize=7)
     ax2b.set_ylabel('Componente Principal 2', color='#cdd6f4', fontsize=7)
+    ax2b.legend(loc='lower right', facecolor='#313244', labelcolor='#cdd6f4', fontsize=7)
     fig2.tight_layout(pad=2)
     embed_figure(left_frame2, fig2)
     
