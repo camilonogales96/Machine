@@ -23,9 +23,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 warnings.filterwarnings('ignore', category=ConvergenceWarning)
 
-# ==========================================
-# 1. CARGA Y PREPROCESAMIENTO DE DATOS VINOS
-# ==========================================
+
 def cargar_datos_vinos():
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
     curr = directorio_actual
@@ -57,7 +55,7 @@ def cargar_datos_vinos():
         variables_entrada = df.drop('quality', axis=1)
         return variables_entrada, objetivo
     else:
-        # Fallback dummy dataset
+
         cols = ['fixed acidity', 'volatile acidity', 'citric acid', 'residual sugar', 'chlorides', 'free sulfur dioxide', 'total sulfur dioxide', 'density', 'pH', 'sulphates', 'alcohol']
         df_dummy = pd.DataFrame(np.random.randn(500, len(cols)), columns=cols)
         target_dummy = pd.Series(np.random.choice([3, 4, 5, 6, 7, 8], size=500), name='quality')
@@ -75,22 +73,22 @@ def crear_interfaz_vinos_rna(parent_widget):
     clases_unicas = sorted(y.unique())
     clases_labels = [str(c) for c in clases_unicas]
 
-    # Division train / test
+
     X_train, X_test, y_train, y_test = train_test_split(
         X_df.values, y.values, test_size=0.20, random_state=77, stratify=y.values
     )
 
-    # Escalado de características con StandardScaler
+
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
-    # Modelo Base RNA (Capas pequeñas)
+
     mlp_base = MLPClassifier(hidden_layer_sizes=(16,), max_iter=400, random_state=77)
     mlp_base.fit(X_train, y_train)
     y_pred_base = mlp_base.predict(X_test)
 
-    # Modelo Optimizado RNA (Perceptrón Multicapa Feedforward con Backpropagation)
+
     mlp_opt = MLPClassifier(
         hidden_layer_sizes=(64, 32),
         activation='relu',
@@ -101,12 +99,12 @@ def crear_interfaz_vinos_rna(parent_widget):
     mlp_opt.fit(X_train_scaled, y_train)
     y_pred_opt = mlp_opt.predict(X_test_scaled)
 
-    # Permutation Importance para determinar variables significativas
+
     perm_imp = permutation_importance(mlp_opt, X_test_scaled, y_test, n_repeats=10, random_state=77)
     importancias = pd.Series(perm_imp.importances_mean, index=feature_names).sort_values(ascending=False)
     top_vars = importancias.head(6).index.tolist()
 
-    # PCA 2D para visualización de fronteras de decisión RNA
+
     pca = PCA(n_components=2)
     X_train_pca = pca.fit_transform(X_train_scaled)
     X_test_pca = pca.transform(X_test_scaled)
@@ -114,7 +112,7 @@ def crear_interfaz_vinos_rna(parent_widget):
     mlp_2d = MLPClassifier(hidden_layer_sizes=(32, 16), max_iter=600, random_state=77)
     mlp_2d.fit(X_train_pca, y_train)
 
-    # Métricas de Evaluación
+
     acc_base = accuracy_score(y_test, y_pred_base)
     acc_opt = accuracy_score(y_test, y_pred_opt)
     err_opt = 1.0 - acc_opt
@@ -134,9 +132,7 @@ def crear_interfaz_vinos_rna(parent_widget):
         spec_list.append(spec)
     spec_macro = float(np.mean(spec_list))
 
-    # ==========================================
-    # CONSTRUCCIÓN DE LA INTERFAZ CON NOTEBOOK
-    # ==========================================
+
     notebook = ttk.Notebook(parent_widget)
     notebook.pack(fill='both', expand=True, padx=5, pady=5)
 
@@ -150,9 +146,7 @@ def crear_interfaz_vinos_rna(parent_widget):
     notebook.add(tab3, text="  📐 Pestaña 3: Frontera 2D (PCA - Red Neuronal)  ")
     notebook.add(tab4, text="  📋 Pestaña 4: Matriz de Confusión y Métricas  ")
 
-    # ---------------------------------------------------------------
-    # PESTAÑA 1: PREDICCIÓN INTERACTIVA
-    # ---------------------------------------------------------------
+
     frame_inputs = ttk.LabelFrame(tab1, text=" Ingreso de Variables Fisicoquímicas del Vino ")
     frame_inputs.pack(fill="x", padx=15, pady=10)
 
@@ -163,10 +157,10 @@ def crear_interfaz_vinos_rna(parent_widget):
     for i, f_name in enumerate(key_vars):
         row_idx = i // 2
         col_idx = (i % 2) * 2
-        
+
         lbl = ttk.Label(frame_inputs, text=f"{f_name.capitalize()}:")
         lbl.grid(row=row_idx, column=col_idx, padx=10, pady=6, sticky="w")
-        
+
         entry = ttk.Entry(frame_inputs, width=12)
         entry.insert(0, defaults_vino.get(f_name, "1.0"))
         entry.grid(row=row_idx, column=col_idx+1, padx=10, pady=6, sticky="w")
@@ -207,7 +201,7 @@ def crear_interfaz_vinos_rna(parent_widget):
     btn_pred = ttk.Button(frame_inputs, text="⚡ Realizar Predicción RNA", command=realizar_prediccion_vino)
     btn_pred.grid(row=4, column=0, columnspan=2, pady=10, padx=10)
 
-    # Dispersión Vinos
+
     frame_plot1 = ttk.LabelFrame(tab1, text=" Distribución del Dataset (Alcohol vs Acidez Volátil) ")
     frame_plot1.pack(expand=True, fill="both", padx=15, pady=5)
 
@@ -231,9 +225,7 @@ def crear_interfaz_vinos_rna(parent_widget):
     embed_figure(frame_plot1, fig1)
     realizar_prediccion_vino()
 
-    # ---------------------------------------------------------------
-    # PESTAÑA 2: CURVA DE LOSS & VARIABLES SIGNIFICATIVAS
-    # ---------------------------------------------------------------
+
     frame_plots_tab2 = ttk.LabelFrame(tab2, text=" Evaluación de Entrenamiento (Backpropagation & Permutación) ")
     frame_plots_tab2.pack(fill="both", expand=True, padx=10, pady=5)
 
@@ -247,7 +239,7 @@ def crear_interfaz_vinos_rna(parent_widget):
         for spine in ax.spines.values():
             spine.set_edgecolor('#313244')
 
-    # Subplot 1: Curva de Pérdida
+
     ax2_loss.plot(mlp_opt.loss_curve_, color='#89b4fa', linewidth=2.5, label='Loss (Entropía Cruzada)')
     ax2_loss.set_title("Curva de Pérdida (Loss Curve - Solver Adam/Backprop)", fontsize=10, fontweight='bold', color='#cdd6f4')
     ax2_loss.set_xlabel("Épocas / Iteraciones", fontsize=8, color='#cdd6f4')
@@ -255,7 +247,7 @@ def crear_interfaz_vinos_rna(parent_widget):
     ax2_loss.grid(True, linestyle='--', alpha=0.4, color='#313244')
     ax2_loss.legend(facecolor='#313244', labelcolor='#cdd6f4', fontsize=8)
 
-    # Subplot 2: Variables Significativas
+
     y_pos = np.arange(len(top_vars))
     vals_imp = importancias[top_vars].values
     ax2_imp.barh(y_pos, vals_imp, color='#fab387', edgecolor='#1e1e2e', height=0.6)
@@ -268,9 +260,7 @@ def crear_interfaz_vinos_rna(parent_widget):
     fig2.tight_layout(pad=2)
     embed_figure(frame_plots_tab2, fig2)
 
-    # ---------------------------------------------------------------
-    # PESTAÑA 3: FRONTERA 2D (PCA)
-    # ---------------------------------------------------------------
+
     frame_pca = ttk.LabelFrame(tab3, text=" Visualización de Regiones Aprendidas por la Red Neuronal (PCA 2D) ")
     frame_pca.pack(fill="both", expand=True, padx=10, pady=5)
 
@@ -295,9 +285,7 @@ def crear_interfaz_vinos_rna(parent_widget):
     fig3.tight_layout()
     embed_figure(frame_pca, fig3)
 
-    # ---------------------------------------------------------------
-    # PESTAÑA 4: MATRIZ DE CONFUSIÓN Y MÉTRICAS
-    # ---------------------------------------------------------------
+
     pan4 = ttk.PanedWindow(tab4, orient='horizontal')
     pan4.pack(fill='both', expand=True, padx=5, pady=5)
 

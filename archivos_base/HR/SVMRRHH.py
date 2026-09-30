@@ -86,10 +86,7 @@ top_n        = 15
 top_features    = coefs.sort_values(ascending=False).head(top_n)
 bottom_features = coefs.sort_values(ascending=True).head(top_n)
 
-# ---------------------------------------------------------------
-# TAB 4 prep: filtrar variables no significativas + separacion
-# (usamos permutation_importance para coherencia con la UI)
-# ---------------------------------------------------------------
+
 print("\n[INFO] Calculando importancia por permutacion (tab 4)...")
 perm_imp = permutation_importance(
     modelo_svm_lineal, X_probar, y_probar,
@@ -97,7 +94,7 @@ perm_imp = permutation_importance(
 )
 importancias_perm = pd.Series(perm_imp.importances_mean, index=variables_entrada.columns)
 
-# Umbral y variables
+
 umbral_significancia = 0.0
 vars_significativas  = importancias_perm[importancias_perm > umbral_significancia].index.tolist()
 if len(vars_significativas) < 2:
@@ -116,7 +113,7 @@ for clase in np.unique(y_entrenar):
 modelo_filt_2d = SVC(kernel='linear', C=1.0, random_state=77)
 modelo_filt_2d.fit(X_sep, y_entrenar)
 
-# Frontera lineal para el panel filtrado
+
 w_f = modelo_filt_2d.coef_[0]
 b_f = modelo_filt_2d.intercept_[0]
 margen_lf = 25.0
@@ -127,9 +124,7 @@ yf_recta   = (-w_f[0] * xf_pts - b_f)     / w_f[1]
 yf_msup    = (-w_f[0] * xf_pts - b_f + 1) / w_f[1]
 yf_minf    = (-w_f[0] * xf_pts - b_f - 1) / w_f[1]
 
-# ---------------------------------------------------------------
-# TAB 5 prep: metricas desde la matriz de confusion
-# ---------------------------------------------------------------
+
 tn, fp, fn, tp = matriz_confusion.ravel() if matriz_confusion.shape == (2, 2) else (
     matriz_confusion[1, 1], matriz_confusion[0, 1],
     matriz_confusion[1, 0], matriz_confusion[0, 0])
@@ -142,16 +137,14 @@ tasa_error_val    = (fp + fn) / total if total else 0
 sensibilidad_val  = tp / P_total if P_total else 0
 especificidad_val = tn / N_total if N_total else 0
 precision_val     = tp / (tp + fp) if (tp + fp) else 0
-f1_val            = (2 * precision_val * sensibilidad_val) / (precision_val + sensibilidad_val) \
+f1_val            = (2 * precision_val * sensibilidad_val) / (precision_val + sensibilidad_val)\
                     if (precision_val + sensibilidad_val) else 0
 beta              = 0.5
-fbeta_val         = ((1 + beta**2) * precision_val * sensibilidad_val) / \
-                    (beta**2 * precision_val + sensibilidad_val) \
+fbeta_val         = ((1 + beta**2) * precision_val * sensibilidad_val) /\
+                    (beta**2 * precision_val + sensibilidad_val)\
                     if (beta**2 * precision_val + sensibilidad_val) else 0
 
-# ---------------------------------------------------------------
-# GUI
-# ---------------------------------------------------------------
+
 root = tk.Tk()
 root.title("SVM Lineal - RRHH")
 root.geometry("1100x680")
@@ -178,7 +171,6 @@ def embed_figure(parent, fig):
     return canvas
 
 
-# ── TAB 1: Matriz de Confusion ────────────────────────────────────────────────
 tab1 = ttk.Frame(notebook)
 notebook.add(tab1, text='  Matriz de Confusion  ')
 
@@ -200,7 +192,6 @@ fig1.tight_layout(pad=2)
 embed_figure(tab1, fig1)
 
 
-# ── TAB 2: Linea de Decision ──────────────────────────────────────────────────
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text='  Linea de Decision (Hiperplano)  ')
 
@@ -242,7 +233,6 @@ fig2.tight_layout(pad=2)
 embed_figure(tab2, fig2)
 
 
-# ── TAB 3: Caracteristicas Representativas ────────────────────────────────────
 tab3 = ttk.Frame(notebook)
 notebook.add(tab3, text='  Caracteristicas Representativas  ')
 
@@ -281,7 +271,6 @@ fig3.tight_layout(pad=2.5)
 embed_figure(tab3, fig3)
 
 
-# ── TAB 4: Frontera de Decision (Significativos) ─────────────────────────────
 tab4 = ttk.Frame(notebook)
 notebook.add(tab4, text='  Frontera de Decisión (Significativos)  ')
 
@@ -295,7 +284,7 @@ for ax in (ax4a, ax4b):
     for spine in ax.spines.values():
         spine.set_edgecolor('#313244')
 
-# Panel izq: importancia de variables retenidas
+
 y_pos = np.arange(len(vars_significativas))
 colores_sig = ['#89b4fa' if v >= 0 else '#f38ba8'
                for v in importancias_perm[vars_significativas].values]
@@ -314,7 +303,7 @@ ax4a.set_xlabel(
     color='#f38ba8' if elim else '#cdd6f4', fontsize=7)
 ax4a.axvline(0, color='#6c7086', linewidth=0.8, linestyle='--')
 
-# Panel der: linea de decision lineal con separacion ampliada
+
 ax4b.fill_between(xf_pts, np.clip(yf_recta, yf_min, yf_max), yf_max,
                   alpha=0.25, color='#6baed6')
 ax4b.fill_between(xf_pts, yf_min, np.clip(yf_recta, yf_min, yf_max),
@@ -341,7 +330,6 @@ fig4.tight_layout(pad=2.5)
 embed_figure(tab4, fig4)
 
 
-# ── TAB 5: Metricas de Rendimiento ────────────────────────────────────────────
 tab5 = ttk.Frame(notebook)
 notebook.add(tab5, text='  Metricas de Rendimiento  ')
 
@@ -374,7 +362,6 @@ def seccion5(titulo):
     tk.Frame(inner5, bg='#313244', height=1).pack(fill='x', padx=24, pady=(0, 8))
 
 
-# Seccion 1: valores CM
 seccion5('Valores de la Matriz de Confusion')
 for lbl, val in [
     ('TP  (True Positive  - positivos correctos)',  int(tp)),
@@ -392,7 +379,7 @@ for lbl, val in [
     tk.Label(row, text=f'{val:>6d}', bg='#181825', fg='#f9e2af',
              font=('Consolas', 11, 'bold')).pack(side='right', padx=14)
 
-# Seccion 2: metricas calculadas
+
 seccion5('Metricas Calculadas')
 for nombre, formula, valor, color in [
     ('Exactitud  (Accuracy)',        '(TP + TN) / (P + N)',                    exactitud_val,     '#a6e3a1'),
@@ -414,7 +401,7 @@ for nombre, formula, valor, color in [
     tk.Label(card, text=f'{valor*100:.2f}%', bg='#181825', fg=color,
              font=('Segoe UI', 14, 'bold')).pack(side='right', padx=18)
 
-# Seccion 3: CM visual
+
 seccion5('Matriz de Confusion - Detalle Visual')
 fig5_cm = mfigure.Figure(figsize=(4.5, 3.2), facecolor='#181825')
 ax5c = fig5_cm.add_subplot(111)
@@ -436,7 +423,7 @@ canvas_cm5 = FigureCanvasTkAgg(fig5_cm, master=cm_frame5)
 canvas_cm5.draw()
 canvas_cm5.get_tk_widget().pack()
 
-# Seccion 4: terminos
+
 seccion5('Terminos y Definiciones')
 for term, desc in [
     ('P',  'Positivo - numero de casos reales positivos en los datos'),
@@ -453,7 +440,7 @@ for term, desc in [
     tk.Label(row_t, text=desc, bg='#1e1e2e', fg='#cdd6f4',
              font=('Segoe UI', 9), anchor='w').pack(side='left')
 
-# Seccion 5: tabla resumen
+
 seccion5('Tabla de Formulas de Rendimiento')
 tabla_f = tk.Frame(inner5, bg='#181825')
 tabla_f.pack(fill='x', padx=24, pady=(0, 16), ipady=4)

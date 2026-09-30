@@ -50,7 +50,7 @@ def cargar_datos_hr_arbol():
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
     curr = directorio_actual
     ruta_origen = None
-    
+
     while curr:
         candidato = os.path.join(curr, 'HRDataset_v14.csv')
         if os.path.exists(candidato):
@@ -101,8 +101,8 @@ def decorar_ramas_arbol(ax, modelo, feature_names, class_names, fontsize=9):
     if arbol_interno.node_count <= 1:
         return anotaciones
 
-    COLOR_SI = '#2e7d32'   # verde: la condición del nodo se cumple (rama izquierda)
-    COLOR_NO = '#c62828'   # rojo: la condición del nodo NO se cumple (rama derecha)
+    COLOR_SI = '#2e7d32'
+    COLOR_NO = '#c62828'
 
     anotaciones_nodos = [a for a in anotaciones if a.get_text().strip() not in ('True', 'False')]
     if len(anotaciones_nodos) != arbol_interno.node_count:
@@ -117,7 +117,7 @@ def decorar_ramas_arbol(ax, modelo, feature_names, class_names, fontsize=9):
         id_derecho = arbol_interno.children_right[id_padre]
 
         if id_izquierdo == -1:
-            continue  # nodo hoja: sin bifurcaciones
+            continue
 
         flecha_izquierda = anotaciones_nodos[id_izquierdo].arrow_patch
         if flecha_izquierda is not None:
@@ -157,13 +157,13 @@ def crear_interfaz_hr_arbol(parent_widget):
         lbl.pack(pady=20)
         return
 
-    # 1. Preprocesamiento y selección de variables
+
     variables_numericas = datos_hr.select_dtypes(include=['int64', 'float64']).columns
     datos_hr_numerico = datos_hr[variables_numericas].fillna(0)
 
     objetivo = datos_hr_numerico['Termd']
 
-    # Configuración de exclusión para evitar sobreajuste y fuga de datos
+
     EXCLUIR_POSIBLE_FUGA = True
     EXCLUIR_ZIP = True
     PESO_CLASES = 'balanced'
@@ -177,7 +177,7 @@ def crear_interfaz_hr_arbol(parent_widget):
 
     variables_entrada = datos_hr_numerico.drop(columns=columnas_a_descartar)
 
-    # División estratificada entrenamiento / prueba
+
     X_entrenar, X_probar, y_entrenar, y_probar = train_test_split(
         variables_entrada, objetivo, test_size=0.2, random_state=77, stratify=objetivo
     )
@@ -188,7 +188,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     print(f"Volumen de datos de prueba: {len(X_probar)}")
     print(f"Columnas descartadas como predictoras: {columnas_a_descartar}")
 
-    # 2. Creación y entrenamiento del modelo Árbol de Decisión Base
+
     modelo_arbol = DecisionTreeClassifier(class_weight=PESO_CLASES, criterion='gini', max_depth=4, random_state=77)
     modelo_arbol.fit(X_entrenar, y_entrenar)
 
@@ -204,7 +204,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     print("\nReporte de Clasificación:")
     print(reporte_clasificacion)
 
-    # Importancia de las variables
+
     importancias = pd.DataFrame({
         'Variable': variables_entrada.columns,
         'Importancia': modelo_arbol.feature_importances_
@@ -212,7 +212,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     print("\n=== IMPORTANCIA DE LAS VARIABLES ===")
     print(importancias[importancias['Importancia'] > 0].to_string(index=False))
 
-    # 3. Poda del Árbol (Cost-Complexity Pruning) con Validación Cruzada
+
     modelo_completo = DecisionTreeClassifier(class_weight=PESO_CLASES, criterion='gini', random_state=77)
     modelo_completo.fit(X_entrenar, y_entrenar)
     ruta_poda = modelo_completo.cost_complexity_pruning_path(X_entrenar, y_entrenar)
@@ -246,7 +246,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     print(f"Árbol Base (max_depth=4)      : Nodos = {nodos_original}  | Exactitud = {exactitud * 100:.2f}%")
     print(f"Árbol Podado (ccp_alpha={alpha_recomendado:.4f}): Nodos = {nodos_podado}  | Exactitud = {exactitud_podado * 100:.2f}%")
 
-    # Tabla de Métricas Completas (Base vs Podado)
+
     tabla_metricas = pd.DataFrame({
         'Base - Train':   calcular_metricas(modelo_arbol, X_entrenar, y_entrenar),
         'Base - Test':    calcular_metricas(modelo_arbol, X_probar, y_probar),
@@ -261,7 +261,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     print(classification_report(y_probar, modelo_arbol_podado.predict(X_probar),
                                 target_names=['Activo', 'Terminado'], zero_division=0))
 
-    # Validación cruzada estratificada (5 folds)
+
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=77)
     scoring = ['accuracy', 'balanced_accuracy', 'precision', 'recall', 'f1', 'roc_auc']
 
@@ -277,7 +277,7 @@ def crear_interfaz_hr_arbol(parent_widget):
             vals = res[f'test_{m}']
             print(f"  {m:<18}: {vals.mean():.4f} ± {vals.std():.4f}")
 
-    # 4. Exportación de archivos CSV
+
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
     datos_ajustados = datos_hr.copy()
     datos_ajustados['Prediccion_Termd_Arbol'] = modelo_arbol_podado.predict(variables_entrada)
@@ -289,7 +289,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     ruta_metricas = os.path.join(directorio_actual, 'Metricas_Arbol.csv')
     tabla_metricas.round(4).to_csv(ruta_metricas)
 
-    # Guardar copia en el directorio raíz del proyecto si existe
+
     directorio_raiz = os.path.abspath(os.path.join(directorio_actual, '..', '..', '..'))
     if os.path.exists(os.path.join(directorio_raiz, 'main.py')):
         try:
@@ -303,11 +303,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     print(f"📁 Ruta: {ruta_exportacion_arbol}")
     print(f"📁 Tabla de métricas: {ruta_metricas}")
 
-    # =========================================================================
-    # 5. Generación de Figuras de Visualización
-    # =========================================================================
 
-    # FIGURA 1: Matriz de Confusión + Frontera de Decisión (PCA 2D)
     fig1 = mfigure.Figure(figsize=(13, 6))
     FigureCanvasTkAgg(fig1)
     ax1 = fig1.add_subplot(1, 2, 1)
@@ -345,7 +341,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     ax2.add_artist(legend1)
     fig1.tight_layout()
 
-    # FIGURA 2: Estructura del Árbol de Decisión Completo
+
     fig2 = mfigure.Figure(figsize=(18, 9))
     FigureCanvasTkAgg(fig2)
     ax3 = fig2.add_subplot(111)
@@ -357,7 +353,7 @@ def crear_interfaz_hr_arbol(parent_widget):
               ha='center', va='bottom', fontsize=10, style='italic', color='#333333')
     fig2.tight_layout(pad=2.0, rect=[0, 0.04, 1, 1])
 
-    # FIGURA 3: Gráfico de Dispersión
+
     fig3 = mfigure.Figure(figsize=(9, 6))
     FigureCanvasTkAgg(fig3)
     ax4 = fig3.add_subplot(111)
@@ -374,7 +370,7 @@ def crear_interfaz_hr_arbol(parent_widget):
               ha='center', va='bottom', fontsize=9.5, style='italic', color='#333333')
     fig3.tight_layout(rect=[0, 0.05, 1, 1])
 
-    # FIGURA 4: Poda del Árbol (CCP)
+
     fig4 = mfigure.Figure(figsize=(13, 6))
     FigureCanvasTkAgg(fig4)
     axA = fig4.add_subplot(1, 2, 1)
@@ -403,7 +399,7 @@ def crear_interfaz_hr_arbol(parent_widget):
               ha='center', va='bottom', fontsize=9.5, style='italic', color='#333333')
     fig4.tight_layout(rect=[0, 0.05, 1, 0.93])
 
-    # FIGURA 5: Visualización de la Estructura del Árbol Podado
+
     fig5 = mfigure.Figure(figsize=(18, 9))
     FigureCanvasTkAgg(fig5)
     ax5 = fig5.add_subplot(111)
@@ -411,7 +407,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     ax5.set_title(f'Estructura del Árbol Podado Optimizado (ccp_alpha = {alpha_recomendado:.4f}, Nodos = {nodos_podado})', fontsize=12, fontweight='bold')
     fig5.tight_layout()
 
-    # FIGURA 6: Curvas ROC / Precision-Recall y Métricas
+
     fig6 = mfigure.Figure(figsize=(15, 5.5))
     FigureCanvasTkAgg(fig6)
     axR = fig6.add_subplot(1, 3, 1)
@@ -450,9 +446,7 @@ def crear_interfaz_hr_arbol(parent_widget):
 
     fig6.tight_layout()
 
-    # =========================================================================
-    # 6. Montaje en Pestañas (Notebook)
-    # =========================================================================
+
     notebook = ttk.Notebook(parent_widget)
     notebook.pack(fill='both', expand=True)
 

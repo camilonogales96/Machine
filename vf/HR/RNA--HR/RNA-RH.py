@@ -22,9 +22,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 warnings.filterwarnings('ignore', category=ConvergenceWarning)
 
-# ==========================================
-# 1. CARGA Y PREPROCESAMIENTO DE DATOS HR
-# ==========================================
+
 def cargar_datos_hr():
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
     curr = directorio_actual
@@ -69,7 +67,7 @@ def cargar_datos_hr():
         X = df_num.drop(columns=cols_drop)
         return X, y
     else:
-        # Fallback dummy dataset si no hay archivo
+
         X = pd.DataFrame(np.random.randn(300, 5), columns=['Salary', 'EngagementSurvey', 'EmpSatisfaction', 'Absences', 'SpecialProjectsCount'])
         y = np.random.choice([0, 1], size=300)
         return X, y
@@ -85,17 +83,17 @@ def crear_interfaz_hr_rna(parent_widget):
     feature_names = list(X_df.columns)
     target_names = ['Activo (0)', 'Terminado (1)']
 
-    # División en entrenamiento y prueba
+
     X_train, X_test, y_train, y_test = train_test_split(
         X_df.values, y, test_size=0.20, random_state=42, stratify=y
     )
 
-    # 1. Modelo Base (Sin escalado)
+
     mlp_base = MLPClassifier(hidden_layer_sizes=(8,), max_iter=500, random_state=42)
     mlp_base.fit(X_train, y_train)
     y_pred_base = mlp_base.predict(X_test)
 
-    # 2. Modelo Optimizado (Con StandardScaler + Perceptrón Multicapa Backpropagation)
+
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
@@ -110,12 +108,12 @@ def crear_interfaz_hr_rna(parent_widget):
     mlp_opt.fit(X_train_scaled, y_train)
     y_pred_opt = mlp_opt.predict(X_test_scaled)
 
-    # Variables significativas usando Importancia por Permutación
+
     perm_imp = permutation_importance(mlp_opt, X_test_scaled, y_test, n_repeats=10, random_state=42)
     importancias = pd.Series(perm_imp.importances_mean, index=feature_names).sort_values(ascending=False)
     top_vars = importancias.head(5).index.tolist()
 
-    # Cálculo de Métricas de Evaluación
+
     acc_b = accuracy_score(y_test, y_pred_base)
     acc_o = accuracy_score(y_test, y_pred_opt)
 
@@ -136,9 +134,7 @@ def crear_interfaz_hr_rna(parent_widget):
     err_o = 1.0 - acc_o
     err_b = 1.0 - acc_b
 
-    # ==========================================
-    # CONSTRUCCIÓN DE LA INTERFAZ CON NOTEBOOK
-    # ==========================================
+
     notebook = ttk.Notebook(parent_widget)
     notebook.pack(fill='both', expand=True, padx=5, pady=5)
 
@@ -150,9 +146,7 @@ def crear_interfaz_hr_rna(parent_widget):
     notebook.add(tab2, text="  📈 Pestaña 2: Pérdida (Loss) y Variables Significativas  ")
     notebook.add(tab3, text="  📋 Pestaña 3: Métricas y Matriz de Confusión  ")
 
-    # ---------------------------------------------------------------
-    # PESTAÑA 1: PREDICCIÓN INTERACTIVA Y DISPERSIÓN DE DATOS
-    # ---------------------------------------------------------------
+
     frame_inputs = ttk.LabelFrame(tab1, text=" Ingreso de Variables del Empleado ")
     frame_inputs.pack(fill="x", padx=15, pady=10)
 
@@ -163,7 +157,7 @@ def crear_interfaz_hr_rna(parent_widget):
     for i, feature in enumerate(main_inter_vars):
         lbl = ttk.Label(frame_inputs, text=f"{feature}:")
         lbl.grid(row=i, column=0, padx=10, pady=6, sticky="w")
-        
+
         entry = ttk.Entry(frame_inputs, width=15)
         entry.insert(0, defaults.get(feature, "1.0"))
         entry.grid(row=i, column=1, padx=10, pady=6, sticky="w")
@@ -177,7 +171,7 @@ def crear_interfaz_hr_rna(parent_widget):
 
     def realizar_prediccion():
         try:
-            # Crear vector con promedios y reemplazar los ingresados
+
             vec = np.mean(X_train, axis=0)
             for f in main_inter_vars:
                 if f in feature_names:
@@ -206,7 +200,7 @@ def crear_interfaz_hr_rna(parent_widget):
     btn_predecir = ttk.Button(frame_inputs, text="⚡ Realizar Predicción RNA", command=realizar_prediccion)
     btn_predecir.grid(row=4, column=0, columnspan=2, pady=10, padx=10)
 
-    # Dispersión decorativa
+
     frame_plot1 = ttk.LabelFrame(tab1, text=" Distribución del Dataset (Salario vs Compromiso Laboral) ")
     frame_plot1.pack(expand=True, fill="both", padx=15, pady=5)
 
@@ -230,9 +224,7 @@ def crear_interfaz_hr_rna(parent_widget):
     embed_figure(frame_plot1, fig1)
     realizar_prediccion()
 
-    # ---------------------------------------------------------------
-    # PESTAÑA 2: CURVA DE PÉRDIDA Y VARIABLES SIGNIFICATIVAS
-    # ---------------------------------------------------------------
+
     frame_plots_tab2 = ttk.LabelFrame(tab2, text=" Análisis de Convergencia Backpropagation e Importancia de Variables ")
     frame_plots_tab2.pack(fill="both", expand=True, padx=10, pady=5)
 
@@ -246,7 +238,7 @@ def crear_interfaz_hr_rna(parent_widget):
         for spine in ax.spines.values():
             spine.set_edgecolor('#313244')
 
-    # Subplot 1: Curva de Pérdida
+
     ax2_loss.plot(mlp_opt.loss_curve_, color='#89b4fa', linewidth=2.5, label='Pérdida (Loss)')
     ax2_loss.set_title("Curva de Pérdida (Loss Curve - Backpropagation)", fontsize=10, fontweight='bold', color='#cdd6f4')
     ax2_loss.set_xlabel("Épocas / Iteraciones", fontsize=8, color='#cdd6f4')
@@ -254,7 +246,7 @@ def crear_interfaz_hr_rna(parent_widget):
     ax2_loss.grid(True, linestyle='--', alpha=0.4, color='#313244')
     ax2_loss.legend(facecolor='#313244', labelcolor='#cdd6f4', fontsize=8)
 
-    # Subplot 2: Variables Significativas
+
     y_pos = np.arange(len(top_vars))
     vals_imp = importancias[top_vars].values
     ax2_imp.barh(y_pos, vals_imp, color='#a6e3a1', edgecolor='#1e1e2e', height=0.6)
@@ -267,9 +259,7 @@ def crear_interfaz_hr_rna(parent_widget):
     fig2.tight_layout(pad=2)
     embed_figure(frame_plots_tab2, fig2)
 
-    # ---------------------------------------------------------------
-    # PESTAÑA 3: MATRIZ DE CONFUSIÓN Y MÉTRICAS
-    # ---------------------------------------------------------------
+
     pan3 = ttk.PanedWindow(tab3, orient='horizontal')
     pan3.pack(fill='both', expand=True, padx=5, pady=5)
 
@@ -295,7 +285,7 @@ def crear_interfaz_hr_rna(parent_widget):
     fig3.tight_layout()
     embed_figure(left_frame3, fig3)
 
-    # Panel de métricas a la derecha
+
     card = tk.Frame(right_frame3, bg='#181825', bd=1, relief='solid')
     card.pack(fill='both', expand=True, padx=10, pady=10)
 

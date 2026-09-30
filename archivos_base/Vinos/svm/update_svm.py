@@ -40,7 +40,7 @@ def calcular_metricas(y_true, y_pred, cm):
     prec_macro = report['macro avg']['precision']
     rec_macro = report['macro avg']['recall']
     f1_macro = report['macro avg']['f1-score']
-    
+
     spec_list = []
     for i in range(len(cm)):
         tn = cm.sum() - (cm[i, :].sum() + cm[:, i].sum() - cm[i, i])
@@ -93,7 +93,7 @@ def calcular_metricas(y_true, y_pred, cm):
     prec_macro = report['macro avg']['precision']
     rec_macro = report['macro avg']['recall']
     f1_macro = report['macro avg']['f1-score']
-    
+
     spec_list = []
     for i in range(len(cm)):
         tn = cm.sum() - (cm[i, :].sum() + cm[:, i].sum() - cm[i, i])
@@ -143,7 +143,7 @@ Z_mej = modelo_svm_2d_mej.predict(np.c_[xx_mej.ravel(), yy_mej.ravel()]).reshape
         ax_m.scatter(X_probar_pca_mej[idx, 0] * mult, X_probar_pca_mej[idx, 1] * mult,
                     label=f'Calidad {clase}', alpha=0.75,
                     color=cmap_vino(i / max(1, len(clases)-1)), edgecolors='#cdd6f4', linewidths=0.3, zorder=3)
-    
+
     xp_m = np.linspace((X_probar_pca_mej[:, 0].min()-1)*mult, (X_probar_pca_mej[:, 0].max()+1)*mult, 400)
     normas_m = np.linalg.norm(modelo_svm_2d_mej.coef_, axis=1)
     idx_principal_m = int(np.argmax(normas_m))
@@ -303,12 +303,11 @@ lbl_metricas.pack(padx=20, pady=10)
 """
 
     final_content = before_mainloop + tabs_code + after_mainloop
-    
+
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(final_content)
-    
+
     print(f"Processed {filename}")
 
 process_file(r"c:\Users\alex\Downloads\modelacion v2\modelacion\Vinos\SVM_VINO\SVM_VINO.py", True)
 process_file(r"c:\Users\alex\Downloads\modelacion v2\modelacion\Vinos\SVM_VINO\SVM_VINO_NO_LINEAL.py", False)
-

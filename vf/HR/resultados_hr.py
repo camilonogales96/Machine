@@ -74,8 +74,8 @@ def embed_figure(parent, fig):
 
 def crear_interfaz_hr_resultados(parent_widget):
     X_df, y = cargar_datos_hr()
-    
-    # Split train/test
+
+
     X_tr, X_te, y_tr, y_te = train_test_split(
         X_df.values, y, test_size=0.20, random_state=77, stratify=y
     )
@@ -84,23 +84,23 @@ def crear_interfaz_hr_resultados(parent_widget):
     X_tr_s = scaler.fit_transform(X_tr)
     X_te_s = scaler.transform(X_te)
 
-    # 1. Regresión Lineal (umbral 0.5)
+
     m_reg = LinearRegression().fit(X_tr_s, y_tr)
     p_reg = (m_reg.predict(X_te_s) >= 0.5).astype(int)
 
-    # 2. Árbol de Decisión
+
     m_tree = DecisionTreeClassifier(criterion='gini', max_depth=4, random_state=77).fit(X_tr_s, y_tr)
     p_tree = m_tree.predict(X_te_s)
 
-    # 3. SVM Lineal
+
     m_svml = SVC(kernel='linear', C=1.0, random_state=77).fit(X_tr_s, y_tr)
     p_svml = m_svml.predict(X_te_s)
 
-    # 4. SVM No Lineal (RBF)
+
     m_svmnl = SVC(kernel='rbf', C=1.0, gamma='scale', random_state=77).fit(X_tr_s, y_tr)
     p_svmnl = m_svmnl.predict(X_te_s)
 
-    # 5. Red Neuronal (RNA - MLP)
+
     m_rna = MLPClassifier(hidden_layer_sizes=(16, 8), max_iter=1000, random_state=77).fit(X_tr_s, y_tr)
     p_rna = m_rna.predict(X_te_s)
 
@@ -128,13 +128,13 @@ def crear_interfaz_hr_resultados(parent_widget):
             'F1-Score': f1
         })
 
-    # Determinar el mejor modelo según F1-Score y Accuracy
+
     mejor_modelo = max(resultados, key=lambda x: (x['F1-Score'], x['Accuracy']))
 
     container = tk.Frame(parent_widget, bg='#1e1e2e')
     container.pack(fill='both', expand=True, padx=10, pady=10)
 
-    # 🏆 CARD DEL GANADOR (BANNER SUPERIOR)
+
     winner_card = tk.Frame(container, bg='#181825', bd=2, relief='groove')
     winner_card.pack(fill='x', padx=5, pady=(5, 10))
 
@@ -154,7 +154,7 @@ def crear_interfaz_hr_resultados(parent_widget):
     )
     lbl_metrics_summary.pack(side='right')
 
-    # SPLIT PANEL INFERIOR: TABLA (IZQ) & GRÁFICA (DER)
+
     pan = ttk.PanedWindow(container, orient='horizontal')
     pan.pack(fill='both', expand=True)
 
@@ -163,7 +163,7 @@ def crear_interfaz_hr_resultados(parent_widget):
     pan.add(left_frame, weight=3)
     pan.add(right_frame, weight=3)
 
-    # 📋 TABLA COMPARATIVA
+
     lbl_t_title = tk.Label(left_frame, text="📋 Tabla Comparativa de Todos los Modelos (HR)", bg='#1e1e2e', fg='#a6e3a1', font=('Segoe UI', 11, 'bold'))
     lbl_t_title.pack(anchor='w', pady=(0, 5))
 
@@ -189,7 +189,7 @@ def crear_interfaz_hr_resultados(parent_widget):
     tree.tag_configure('winner', background='#313244', foreground='#a6e3a1', font=('Segoe UI', 9, 'bold'))
     tree.pack(fill='x', pady=5)
 
-    # Cuadro explicativo / justificación técnica
+
     exp_frame = ttk.LabelFrame(left_frame, text=" 💡 Justificación Técnica de Retención Laboral ")
     exp_frame.pack(fill='both', expand=True, pady=10)
 
@@ -205,7 +205,7 @@ def crear_interfaz_hr_resultados(parent_widget):
     txt_exp.insert("1.0", justificacion)
     txt_exp.config(state="disabled")
 
-    # 📊 GRÁFICA COMPARATIVA DE BARRAS
+
     lbl_g_title = tk.Label(right_frame, text="📊 Comparación Gráfica de Desempeño (%)", bg='#1e1e2e', fg='#a6e3a1', font=('Segoe UI', 11, 'bold'))
     lbl_g_title.pack(anchor='w', pady=(0, 5))
 

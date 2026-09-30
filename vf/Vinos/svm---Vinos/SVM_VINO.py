@@ -1,7 +1,7 @@
 import os
 import sys
 
-# Configuración automática TCL/TK si es necesario
+
 if 'TCL_LIBRARY' not in os.environ or 'TK_LIBRARY' not in os.environ:
     base_prefix = getattr(sys, 'base_prefix', sys.prefix)
     tcl_cand = os.path.join(base_prefix, 'tcl', 'tcl8.6')
@@ -94,9 +94,7 @@ def crear_interfaz_vinos_svm_lineal(parent_widget):
     top_features    = coefs.sort_values(ascending=False).head(top_n)
     bottom_features = coefs.sort_values(ascending=True).head(top_n)
 
-    # ==========================================
-    # CÁLCULO MODELO MEJORADO
-    # ==========================================
+
     num_eliminar = 3
     variables_a_eliminar = coefs.sort_values(ascending=True).head(num_eliminar).index.tolist()
     variables_conservadas = [c for c in variables_entrada.columns if c not in variables_a_eliminar]
@@ -120,7 +118,7 @@ def crear_interfaz_vinos_svm_lineal(parent_widget):
         prec_macro = report['macro avg']['precision']
         rec_macro = report['macro avg']['recall']
         f1_macro = report['macro avg']['f1-score']
-        
+
         spec_list = []
         for i in range(len(cm)):
             tn = cm.sum() - (cm[i, :].sum() + cm[:, i].sum() - cm[i, i])
@@ -157,7 +155,7 @@ def crear_interfaz_vinos_svm_lineal(parent_widget):
     notebook = ttk.Notebook(parent_widget)
     notebook.pack(fill='both', expand=True, padx=10, pady=10)
 
-    # ── PESTAÑA 1: Matriz de Confusión ─────────────────────────────────────────
+
     tab1 = ttk.Frame(notebook)
     notebook.add(tab1, text='  📊  Matriz de Confusión  ')
 
@@ -178,7 +176,7 @@ def crear_interfaz_vinos_svm_lineal(parent_widget):
     fig1.tight_layout(pad=2)
     embed_figure(tab1, fig1)
 
-    # ── PESTAÑA 2: Visualización PCA ───────────────────────────────────────────
+
     tab2 = ttk.Frame(notebook)
     notebook.add(tab2, text='  📐  Visualización PCA  ')
 
@@ -223,7 +221,7 @@ def crear_interfaz_vinos_svm_lineal(parent_widget):
     fig2.tight_layout(pad=2)
     embed_figure(tab2, fig2)
 
-    # ── PESTAÑA 3: Características Representativas ─────────────────────────────
+
     tab3 = ttk.Frame(notebook)
     notebook.add(tab3, text='  🏆  Características Representativas  ')
 
@@ -258,7 +256,7 @@ def crear_interfaz_vinos_svm_lineal(parent_widget):
     fig3.tight_layout(pad=2.5)
     embed_figure(tab3, fig3)
 
-    # ── PESTAÑA 4: Modelo Mejorado ────────────────────────────────────────────
+
     tab4 = ttk.Frame(notebook)
     notebook.add(tab4, text='  ✨  Modelo Mejorado  ')
 
@@ -296,19 +294,19 @@ def crear_interfaz_vinos_svm_lineal(parent_widget):
         mult = mult_var.get()
         ax_m = ax4
         ax_m.set_facecolor('#1e1e2e')
-        
+
         mult_max = 3.0
         graf_max_x = np.max(np.abs(X_probar_pca_mej[:, 0])) * mult_max + 2.0
         graf_max_y = np.max(np.abs(X_probar_pca_mej[:, 1])) * mult_max + 2.0
-        
+
         xx_visual, yy_visual = np.meshgrid(np.arange(-graf_max_x, graf_max_x, 0.1),
                                            np.arange(-graf_max_y, graf_max_y, 0.1))
-        
+
         Z = modelo_svm_2d_mej.predict(np.c_[xx_visual.ravel() / mult, yy_visual.ravel() / mult]).reshape(xx_visual.shape)
-        
+
         clases_sorted = sorted(y_probar.unique())
         cmap_vino = plt.cm.RdYlGn
-        
+
         ax_m.contourf(xx_visual, yy_visual, Z, alpha=0.12, cmap='RdYlGn',
                       levels=np.arange(min(clases_sorted)-0.5, max(clases_sorted)+1, 1))
 
@@ -317,7 +315,7 @@ def crear_interfaz_vinos_svm_lineal(parent_widget):
             ax_m.scatter(X_probar_pca_mej[idx, 0] * mult, X_probar_pca_mej[idx, 1] * mult,
                         label=f'Calidad {clase}', alpha=0.75,
                         color=cmap_vino(i / max(1, len(clases_sorted)-1)), edgecolors='#cdd6f4', linewidths=0.3, zorder=3)
-        
+
         xp_visual = np.linspace(-graf_max_x, graf_max_x, 400)
         normas_m = np.linalg.norm(modelo_svm_2d_mej.coef_, axis=1)
         idx_principal_m = int(np.argmax(normas_m))
@@ -352,7 +350,7 @@ def crear_interfaz_vinos_svm_lineal(parent_widget):
 
     actualizar_pca_mejorado()
 
-    # ── PESTAÑA 5: Validación y Comparación ────────────────────────────────────
+
     tab5 = ttk.Frame(notebook)
     notebook.add(tab5, text='  ⚖️  Validación y Comparación  ')
 

@@ -20,7 +20,7 @@ def cargar_datos_hr_regresion():
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
     curr = directorio_actual
     ruta_origen = None
-    
+
     while curr:
         candidato = os.path.join(curr, 'HRDataset_v14.csv')
         if os.path.exists(candidato):
@@ -56,9 +56,7 @@ def crear_interfaz_hr_regresion(parent_widget):
     notebook.add(tab2, text=" 📋 Pestaña 2: Gráficas de Validación, Matriz de Confusión y Métricas ")
     notebook.pack(expand=1, fill="both")
 
-    # ==========================================
-    # PESTAÑA 1: GRÁFICA 1 (DISPERSIÓN Y ZONAS)
-    # ==========================================
+
     frame_controles = ttk.LabelFrame(tab1, text=" Controles de Ajuste ")
     frame_controles.pack(fill="x", padx=10, pady=5)
 
@@ -94,7 +92,7 @@ def crear_interfaz_hr_regresion(parent_widget):
     def actualizar_grafico1():
         ax1.clear()
         mult = val_mult.get()
-        
+
         try:
             umbral = float(entry_umbral.get())
         except ValueError:
@@ -137,9 +135,7 @@ def crear_interfaz_hr_regresion(parent_widget):
 
     actualizar_grafico1()
 
-    # ==========================================
-    # PESTAÑA 2: MODELO ALINEADO Y VALIDACIÓN
-    # ==========================================
+
     cols_todas = ['PerfScoreID', 'EngagementSurvey', 'EmpSatisfaction', 'SpecialProjectsCount', 'DaysLateLast30', 'Absences']
     X1 = datos_hr[cols_todas].fillna(0).values
     y = datos_hr['Salary'].values

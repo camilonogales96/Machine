@@ -4,7 +4,7 @@ def update_visuals(filepath, is_lineal):
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Change contourf alpha to 0.12 so the dark background shows through
+
     content = content.replace(
         "ax_m.contourf(xx * mult, yy * mult, Z, alpha=0.25, cmap='RdYlGn',",
         "ax_m.contourf(xx * mult, yy * mult, Z, alpha=0.12, cmap='RdYlGn',"
@@ -15,7 +15,7 @@ def update_visuals(filepath, is_lineal):
     )
 
     if is_lineal:
-        # Increase visibility of hyperplanes
+
         content = content.replace(
             "ax_m.plot(xp_m, yp_m, 'w-', linewidth=2.2, alpha=0.95, zorder=5, label='Hiperplano principal')",
             "ax_m.plot(xp_m, yp_m, 'w-', linewidth=2.5, alpha=1.0, zorder=5, label='Hiperplano principal')"

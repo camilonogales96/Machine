@@ -27,27 +27,27 @@ def limpiar_dataset_hr():
     if not os.path.exists(ruta_origen):
         print(f"[ERROR] No se encontro {ruta_origen}")
         return None
-    
+
     df = pd.read_csv(ruta_origen)
     df = df.drop_duplicates()
     df = df.dropna(subset=['Termd'])
-    
-    # Seleccionar columnas numericas y excluir IDs no predictivas si existen
+
+
     variables_numericas = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
     df_num = df[variables_numericas].fillna(0)
-    
+
     objetivo = df_num['Termd']
     columnas_descartar = ['Termd']
     if 'EmpID' in df_num.columns:
         columnas_descartar.append('EmpID')
-        
+
     variables_entrada = df_num.drop(columns=columnas_descartar)
-    
+
     normalizador = StandardScaler()
     valores_escalados = normalizador.fit_transform(variables_entrada)
     datos_normalizados = pd.DataFrame(valores_escalados, columns=variables_entrada.columns)
     datos_normalizados['Termd'] = objetivo.values
-    
+
     ruta_destino = os.path.join(BASE_DIR, 'dataset_hr_limpio.csv')
     datos_normalizados.to_csv(ruta_destino, index=False)
     print(f"[LIMPIEZA HR] Dataset limpio exportado exitosamente en: {ruta_destino}")
@@ -59,18 +59,18 @@ def limpiar_dataset_vinos():
     if not os.path.exists(ruta_origen):
         print(f"[ERROR] No se encontro {ruta_origen}")
         return None
-        
+
     df = pd.read_csv(ruta_origen)
     df = df.drop_duplicates().dropna()
-    
+
     objetivo = df['quality']
     variables_entrada = df.drop('quality', axis=1)
-    
+
     normalizador = StandardScaler()
     valores_escalados = normalizador.fit_transform(variables_entrada)
     datos_normalizados = pd.DataFrame(valores_escalados, columns=variables_entrada.columns)
     datos_normalizados['quality'] = objetivo.values
-    
+
     ruta_destino = os.path.join(BASE_DIR, 'dataset_vino_limpio.csv')
     datos_normalizados.to_csv(ruta_destino, index=False)
     print(f"[LIMPIEZA VINOS] Dataset limpio exportado exitosamente en: {ruta_destino}")

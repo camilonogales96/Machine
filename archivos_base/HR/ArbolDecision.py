@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')  # Backend necesario para embeber en Tkinter
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.figure as mfigure
 import seaborn as sns
@@ -50,7 +50,7 @@ def cargar_datos_hr_arbol():
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
     curr = directorio_actual
     ruta_origen = None
-    
+
     while curr:
         candidato = os.path.join(curr, 'HRDataset_v14.csv')
         if os.path.exists(candidato):
@@ -157,7 +157,7 @@ def crear_interfaz_hr_arbol(parent_widget):
         lbl.pack(pady=20)
         return
 
-    # 1. Preprocesamiento y selección de variables
+
     variables_numericas = datos_hr.select_dtypes(include=['int64', 'float64']).columns
     datos_hr_numerico = datos_hr[variables_numericas].fillna(0)
 
@@ -186,7 +186,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     print(f"Volumen de datos de prueba: {len(X_probar)}")
     print(f"Columnas descartadas como predictoras: {columnas_a_descartar}")
 
-    # 2. Creación y entrenamiento del modelo Árbol de Decisión Base
+
     modelo_arbol = DecisionTreeClassifier(class_weight=PESO_CLASES, criterion='gini', max_depth=4, random_state=77)
     modelo_arbol.fit(X_entrenar, y_entrenar)
 
@@ -202,7 +202,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     print("\nReporte de Clasificación:")
     print(reporte_clasificacion)
 
-    # Importancia de las variables
+
     importancias = pd.DataFrame({
         'Variable': variables_entrada.columns,
         'Importancia': modelo_arbol.feature_importances_
@@ -210,7 +210,7 @@ def crear_interfaz_hr_arbol(parent_widget):
     print("\n=== IMPORTANCIA DE LAS VARIABLES ===")
     print(importancias[importancias['Importancia'] > 0].to_string(index=False))
 
-    # 3. Poda del Árbol (Cost-Complexity Pruning) con Validación Cruzada
+
     modelo_completo = DecisionTreeClassifier(class_weight=PESO_CLASES, criterion='gini', random_state=77)
     modelo_completo.fit(X_entrenar, y_entrenar)
     ruta_poda = modelo_completo.cost_complexity_pruning_path(X_entrenar, y_entrenar)
@@ -273,7 +273,7 @@ def crear_interfaz_hr_arbol(parent_widget):
             vals = res[f'test_{m}']
             print(f"  {m:<18}: {vals.mean():.4f} ± {vals.std():.4f}")
 
-    # 4. Exportación de archivos CSV
+
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
     datos_ajustados = datos_hr.copy()
     datos_ajustados['Prediccion_Termd_Arbol'] = modelo_arbol_podado.predict(variables_entrada)
@@ -298,9 +298,6 @@ def crear_interfaz_hr_arbol(parent_widget):
     print(f"📁 Ruta: {ruta_exportacion_arbol}")
     print(f"📁 Tabla de métricas: {ruta_metricas}")
 
-    # =========================================================================
-    # 5. Generación de Figuras de Visualización
-    # =========================================================================
 
     fig1 = mfigure.Figure(figsize=(13, 6))
     FigureCanvasTkAgg(fig1)
@@ -439,9 +436,7 @@ def crear_interfaz_hr_arbol(parent_widget):
 
     fig6.tight_layout()
 
-    # =========================================================================
-    # 6. Montaje en Pestañas (Notebook)
-    # =========================================================================
+
     notebook = ttk.Notebook(parent_widget)
     notebook.pack(fill='both', expand=True)
 

@@ -17,7 +17,7 @@ def cargar_datos_vinos_regresion():
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
     curr = directorio_actual
     ruta_origen = None
-    
+
     while curr:
         candidato = os.path.join(curr, 'redwine', 'winequality-red.csv')
         candidato2 = os.path.join(curr, 'winequality-red.csv')
@@ -56,9 +56,7 @@ def crear_interfaz_vinos_regresion(parent_widget):
     notebook.add(tab2, text=" 📋 Pestaña 2: Gráfica de Validación y Métricas (Diapositiva 1.5) ")
     notebook.pack(expand=1, fill="both")
 
-    # ==========================================
-    # PESTAÑA 1: GRÁFICA 1 (DISPERSIÓN Y ZONAS)
-    # ==========================================
+
     frame_controles = ttk.LabelFrame(tab1, text=" Controles de Ajuste ")
     frame_controles.pack(fill="x", padx=10, pady=5)
 
@@ -94,7 +92,7 @@ def crear_interfaz_vinos_regresion(parent_widget):
     def actualizar_grafico1():
         ax1.clear()
         mult = val_mult.get()
-        
+
         try:
             umbral = float(entry_umbral.get())
         except ValueError:
@@ -137,13 +135,11 @@ def crear_interfaz_vinos_regresion(parent_widget):
 
     actualizar_grafico1()
 
-    # ==========================================
-    # PESTAÑA 2: GRÁFICA 2 Y VALIDACIÓN (DIAPOSITIVA 1.5)
-    # ==========================================
+
     cols_todas = [c for c in datos_vino.columns if c != 'quality']
     cols_filtradas = ['alcohol', 'volatile acidity', 'sulphates', 'citric acid']
 
-    # Modelo 1: Todas las variables
+
     X1 = datos_vino[cols_todas].values
     y = datos_vino['quality'].values
     X1_tr, X1_te, y1_tr, y1_te = train_test_split(X1, y, test_size=0.2, random_state=42)
@@ -156,7 +152,7 @@ def crear_interfaz_vinos_regresion(parent_widget):
     p1_tr = m1.predict(X1_tr_s)
     p1_te = m1.predict(X1_te_s)
 
-    # Modelo 2: Variables seleccionadas (Modelo Mejorado)
+
     X2 = datos_vino[cols_filtradas].values
     X2_tr, X2_te, y2_tr, y2_te = train_test_split(X2, y, test_size=0.2, random_state=42)
 
@@ -168,7 +164,7 @@ def crear_interfaz_vinos_regresion(parent_widget):
     p2_tr = m2.predict(X2_tr_s)
     p2_te = m2.predict(X2_te_s)
 
-    # Contenedor Superior: Gráfica 2
+
     frame_plot2 = ttk.LabelFrame(tab2, text=" Gráfica 2: Evaluador de Ajuste (Valores Reales vs. Predicciones del Modelo) ")
     frame_plot2.pack(fill="both", expand=True, padx=10, pady=5)
 
@@ -191,7 +187,7 @@ def crear_interfaz_vinos_regresion(parent_widget):
     ax2.grid(True, linestyle='--', alpha=0.5)
     canvas2.draw()
 
-    # Contenedor Inferior: Tabla de Métricas
+
     frame_t2_middle = ttk.LabelFrame(tab2, text=" Comparación de Métricas de Validación ")
     frame_t2_middle.pack(fill="x", padx=10, pady=5)
 
@@ -219,7 +215,7 @@ def crear_interfaz_vinos_regresion(parent_widget):
 
     tree.pack(fill="x", padx=5, pady=5)
 
-    # Cuadro explicativo
+
     frame_info = ttk.LabelFrame(tab2, text=" Análisis Teórico según Diapositiva 1.5 ")
     frame_info.pack(fill="x", padx=10, pady=5)
 

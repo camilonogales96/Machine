@@ -4,7 +4,7 @@ import re
 def rewrite_file(filepath, is_lineal):
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
-    
+
     start_idx = content.find("def actualizar_pca_mejorado(*args):")
     if start_idx == -1:
         print(f"Error: actualizar_pca_mejorado not found in {filepath}")
@@ -23,20 +23,20 @@ def rewrite_file(filepath, is_lineal):
     ax4.clear()
     mult = mult_var.get()
     ax_m = ax4
-    
+
     margen = 2.0
     x_min_mesh = X_probar_pca_mej[:, 0].min() - margen
     x_max_mesh = X_probar_pca_mej[:, 0].max() + margen
     y_min_mesh = X_probar_pca_mej[:, 1].min() - margen
     y_max_mesh = X_probar_pca_mej[:, 1].max() + margen
-    
+
     xx, yy = np.meshgrid(np.arange(x_min_mesh, x_max_mesh, 0.05),
                          np.arange(y_min_mesh, y_max_mesh, 0.05))
     Z = modelo_svm_2d_mej.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
-    
+
     clases_sorted = sorted(y_probar.unique())
     cmap_vino = plt.cm.RdYlGn
-    
+
     ax_m.contourf(xx * mult, yy * mult, Z, alpha=0.25, cmap='RdYlGn',
                   levels=np.arange(min(clases_sorted)-0.5, max(clases_sorted)+1, 1))
 
@@ -45,7 +45,7 @@ def rewrite_file(filepath, is_lineal):
         ax_m.scatter(X_probar_pca_mej[idx, 0] * mult, X_probar_pca_mej[idx, 1] * mult,
                     label=f'Calidad {clase}', alpha=0.75,
                     color=cmap_vino(i / max(1, len(clases_sorted)-1)), edgecolors='#cdd6f4', linewidths=0.3, zorder=3)
-    
+
     xp_m = np.linspace(x_min_mesh*mult, x_max_mesh*mult, 400)
     normas_m = np.linalg.norm(modelo_svm_2d_mej.coef_, axis=1)
     idx_principal_m = int(np.argmax(normas_m))
@@ -80,10 +80,10 @@ def rewrite_file(filepath, is_lineal):
     ax4.clear()
     mult = mult_var.get()
     ax_m = ax4
-    
+
     clases_sorted = sorted(objetivo.unique())
     cmap_vino = plt.cm.RdYlGn
-    
+
     ax_m.contourf(xx_mej * mult, yy_mej * mult, Z_mej, alpha=0.25, cmap='RdYlGn',
                  levels=np.arange(min(clases_sorted)-0.5, max(clases_sorted)+1, 1))
 
@@ -110,12 +110,12 @@ def rewrite_file(filepath, is_lineal):
     canvas4.draw()
 
 """
-    
+
     new_content = before_func + func_content + after_func
-    
+
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(new_content)
-    
+
     print(f"Updated {filepath}")
 
 rewrite_file("c:\\\\Users\\\\alex\\\\Downloads\\\\modelacion v2\\\\modelacion\\\\Vinos\\\\SVM_VINO\\\\SVM_VINO.py", True)

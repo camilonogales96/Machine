@@ -4,10 +4,10 @@ import numpy as np
 def update_file(filepath, is_lineal):
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
-    
+
     start_idx = content.find("def actualizar_pca_mejorado(*args):")
     if start_idx == -1: return
-    
+
     end_idx = content.find("mult_combo = ttk.Combobox", start_idx)
     if end_idx == -1: return
 
@@ -20,22 +20,22 @@ def update_file(filepath, is_lineal):
     mult = mult_var.get()
     ax_m = ax4
     ax_m.set_facecolor('#1e1e2e')
-    
+
     # Límites fijos para evitar que Matplotlib haga auto-zoom
     mult_max = 3.0
     graf_max_x = np.max(np.abs(X_probar_pca_mej[:, 0])) * mult_max + 2.0
     graf_max_y = np.max(np.abs(X_probar_pca_mej[:, 1])) * mult_max + 2.0
-    
+
     # Malla visual fija que abarca todo el espacio posible
     xx_visual, yy_visual = np.meshgrid(np.arange(-graf_max_x, graf_max_x, 0.1),
                                        np.arange(-graf_max_y, graf_max_y, 0.1))
-    
+
     # Predecir las regiones escalando inversamente las coordenadas visuales
     Z = modelo_svm_2d_mej.predict(np.c_[xx_visual.ravel() / mult, yy_visual.ravel() / mult]).reshape(xx_visual.shape)
-    
+
     clases_sorted = sorted(y_probar.unique())
     cmap_vino = plt.cm.RdYlGn
-    
+
     # Zonas de decisión con alpha 0.12 para que el fondo oscuro sobresalga
     ax_m.contourf(xx_visual, yy_visual, Z, alpha=0.12, cmap='RdYlGn',
                   levels=np.arange(min(clases_sorted)-0.5, max(clases_sorted)+1, 1))
@@ -46,7 +46,7 @@ def update_file(filepath, is_lineal):
         ax_m.scatter(X_probar_pca_mej[idx, 0] * mult, X_probar_pca_mej[idx, 1] * mult,
                     label=f'Calidad {clase}', alpha=0.75,
                     color=cmap_vino(i / max(1, len(clases_sorted)-1)), edgecolors='#cdd6f4', linewidths=0.3, zorder=3)
-    
+
     # Hiperplanos
     xp_visual = np.linspace(-graf_max_x, graf_max_x, 400)
     normas_m = np.linalg.norm(modelo_svm_2d_mej.coef_, axis=1)
@@ -84,21 +84,21 @@ def update_file(filepath, is_lineal):
     mult = mult_var.get()
     ax_m = ax4
     ax_m.set_facecolor('#1e1e2e')
-    
+
     # Límites fijos para evitar auto-zoom
     mult_max = 3.0
     graf_max_x = np.max(np.abs(X_probar_pca_mej[:, 0])) * mult_max + 2.0
     graf_max_y = np.max(np.abs(X_probar_pca_mej[:, 1])) * mult_max + 2.0
-    
+
     xx_visual, yy_visual = np.meshgrid(np.arange(-graf_max_x, graf_max_x, 0.1),
                                        np.arange(-graf_max_y, graf_max_y, 0.1))
-    
+
     # Inversa para predecir regiones
     Z = modelo_svm_2d_mej.predict(np.c_[xx_visual.ravel() / mult, yy_visual.ravel() / mult]).reshape(xx_visual.shape)
-    
+
     clases_sorted = sorted(objetivo.unique())
     cmap_vino = plt.cm.RdYlGn
-    
+
     ax_m.contourf(xx_visual, yy_visual, Z, alpha=0.12, cmap='RdYlGn',
                  levels=np.arange(min(clases_sorted)-0.5, max(clases_sorted)+1, 1))
 

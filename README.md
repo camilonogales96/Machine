@@ -87,7 +87,9 @@ Machine Proyecto/
 ├── data_cleaner.py          # Script de preprocesamiento, limpieza y normalización
 ├── main.py                  # Dashboard interactivo Tkinter y evaluador de modelos ML
 ├── requirements.txt         # Lista de dependencias del proyecto Python
-└── README.md                # Documentación del proyecto
+├── README.md                # Documentación del proyecto
+└──vf                        # Entorno virtual del proyecto
+└──archivos_base             # Los archivos base desarrollados por los integrantes del grupo
 ```
 
 ---

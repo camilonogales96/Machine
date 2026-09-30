@@ -1,9 +1,7 @@
 import os
 import sys
 
-# ---------------------------------------------------------------
-# CONFIGURACIÓN AUTOMÁTICA DE TCL/TK EN ENTORNOS VIRTUALES (VENV)
-# ---------------------------------------------------------------
+
 if 'TCL_LIBRARY' not in os.environ or 'TK_LIBRARY' not in os.environ:
     base_prefix = getattr(sys, 'base_prefix', sys.prefix)
     tcl_cand = os.path.join(base_prefix, 'tcl', 'tcl8.6')
@@ -19,9 +17,7 @@ from tkinter import ttk, messagebox
 import matplotlib
 matplotlib.use('TkAgg')
 
-# ---------------------------------------------------------------
-# EJECUTAR LIMPIEZA AUTOMÁTICA AL INICIAR SI ES NECESARIO
-# ---------------------------------------------------------------
+
 try:
     import data_cleaner
     data_cleaner.ejecutar_limpieza_completa()
@@ -35,12 +31,12 @@ def cargar_modulo_funcion(subpath, funcion_nombre):
     abs_path = os.path.join(BASE_DIR, 'vf', *subpath)
     if not os.path.exists(abs_path):
         raise FileNotFoundError(f"No se encontró el archivo: {abs_path}")
-    
+
     mod_name = os.path.splitext(os.path.basename(abs_path))[0].replace(' ', '_').replace('-', '_')
     spec = importlib.util.spec_from_file_location(mod_name, abs_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    
+
     if not hasattr(mod, funcion_nombre):
         raise AttributeError(f"El módulo {mod_name} no posee la función {funcion_nombre}")
     return getattr(mod, funcion_nombre)
@@ -54,37 +50,37 @@ class UnifiedApp:
 
         self.current_button = None
 
-        # Estilos generales de Tkinter / TTK
+
         self.style = ttk.Style()
         self.style.theme_use('clam')
         self.style.configure('TNotebook', background='#1e1e2e', borderwidth=0)
         self.style.configure('TNotebook.Tab', background='#313244', foreground='#cdd6f4', padding=[12, 6], font=('Segoe UI', 9, 'bold'))
         self.style.map('TNotebook.Tab', background=[('selected', '#89b4fa')], foreground=[('selected', '#11111b')])
 
-        # ── PANEL PRINCIPAL: SPLIT LATERAL ──────────────────────────────────────
+
         self.main_container = tk.Frame(self.root, bg='#11111b')
         self.main_container.pack(fill='both', expand=True)
 
-        # ── MENÚ NAVEGACIÓN IZQUIERDO ───────────────────────────────────────────
+
         self.sidebar = tk.Frame(self.main_container, bg='#181825', width=260)
         self.sidebar.pack(side='left', fill='y')
         self.sidebar.pack_propagate(False)
 
-        # Header del Menú
+
         header_frame = tk.Frame(self.sidebar, bg='#1e1e2e', height=70)
         header_frame.pack(fill='x')
         header_frame.pack_propagate(False)
-        
+
         lbl_title = tk.Label(header_frame, text="🤖 ML DASHBOARD", bg='#1e1e2e', fg='#89b4fa', font=('Segoe UI', 13, 'bold'))
         lbl_title.pack(pady=12)
         lbl_sub = tk.Label(header_frame, text="Modelos de Clasificación y Regresión", bg='#1e1e2e', fg='#a6adc8', font=('Segoe UI', 8))
         lbl_sub.pack()
 
-        # ÁREA DE CONTENIDO (DERECHA)
+
         self.content_area = tk.Frame(self.main_container, bg='#1e1e2e')
         self.content_area.pack(side='right', fill='both', expand=True)
 
-        # MÓDULOS REGISTRADOS
+
         self.modulos = {
             'vinos_regresion': {
                 'cat': 'VINOS',
@@ -165,12 +161,12 @@ class UnifiedApp:
         self.cargar_modulo('vinos_regresion')
 
     def construir_menu(self):
-        # Categórica 1: VINOS
+
         tk.Label(self.sidebar, text="🍷 DATASET VINOS", bg='#181825', fg='#f9e2af', font=('Segoe UI', 9, 'bold'), anchor='w').pack(fill='x', padx=15, pady=(15, 5))
         for key in ['vinos_regresion', 'vinos_arbol', 'vinos_svm_lineal', 'vinos_svm_nolineal', 'vinos_rna', 'vinos_resultados']:
             self.crear_boton_menu(key)
 
-        # Categórica 2: RECURSOS HUMANOS
+
         tk.Label(self.sidebar, text="👥 RECURSOS HUMANOS (HR)", bg='#181825', fg='#a6e3a1', font=('Segoe UI', 9, 'bold'), anchor='w').pack(fill='x', padx=15, pady=(20, 5))
         for key in ['hr_regresion', 'hr_arbol', 'hr_svm_lineal', 'hr_svm_nolineal', 'hr_rna', 'hr_resultados']:
             self.crear_boton_menu(key)
@@ -194,7 +190,7 @@ class UnifiedApp:
         self.buttons[key] = btn
 
     def cargar_modulo(self, key):
-        # Reset de estilo de botones
+
         if self.current_button:
             self.current_button.config(bg='#181825', fg='#cdd6f4', font=('Segoe UI', 9))
 
@@ -202,7 +198,7 @@ class UnifiedApp:
         btn.config(bg='#89b4fa', fg='#11111b', font=('Segoe UI', 9, 'bold'))
         self.current_button = btn
 
-        # Limpiar área de contenido
+
         for child in self.content_area.winfo_children():
             child.destroy()
 

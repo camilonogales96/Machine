@@ -16,10 +16,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 warnings.filterwarnings('ignore', category=ConvergenceWarning)
 
-# ==========================================
-# 1. CARGA, LIMPIEZA Y ENTRENAMIENTO DE MODELOS
-# ==========================================
-# Cargar el dataset de Recursos Humanos (Búsqueda dinámica en carpetas padre)
+
 import os
 
 directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
@@ -45,30 +42,30 @@ if not ruta_origen:
 
 df_raw = pd.read_csv(ruta_origen)
 
-# Seleccionamos 4 características numéricas relevantes y nuestra variable objetivo
-feature_names = ['Salary', 'EngagementSurvey', 'EmpSatisfaction', 'Absences']
-target_col = 'Termd' 
 
-# Nombres legibles para el target (0 = Activo, 1 = Terminado/Despedido)
+feature_names = ['Salary', 'EngagementSurvey', 'EmpSatisfaction', 'Absences']
+target_col = 'Termd'
+
+
 target_names = ['Activo', 'Terminado']
 
-# Limpieza: Extraemos solo las columnas útiles y eliminamos filas con nulos en dichas columnas
+
 df = df_raw[feature_names + [target_col]].dropna().reset_index(drop=True)
 
 X = df[feature_names].values
 y = df[target_col].values
 
-# División en entrenamiento (80%) y prueba (20%)
+
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.20, random_state=42, stratify=y
 )
 
-# 1. Modelo Base (Sin escalado previo)
+
 mlp_base = MLPClassifier(hidden_layer_sizes=(8,), max_iter=500, random_state=42)
 mlp_base.fit(X_train, y_train)
 y_pred_base = mlp_base.predict(X_test)
 
-# 2. Modelo Optimizado (Con escalado StandardScaler + Capas (16, 8))
+
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
@@ -83,7 +80,7 @@ mlp_opt = MLPClassifier(
 mlp_opt.fit(X_train_scaled, y_train)
 y_pred_opt = mlp_opt.predict(X_test_scaled)
 
-# Cálculo de métricas
+
 acc_b = accuracy_score(y_test, y_pred_base)
 acc_o = accuracy_score(y_test, y_pred_opt)
 
@@ -98,9 +95,7 @@ f1_o = f1_score(y_test, y_pred_opt, average='weighted', zero_division=0)
 
 cm_opt = confusion_matrix(y_test, y_pred_opt)
 
-# ==========================================
-# 2. CONSTRUCCIÓN DE LA INTERFAZ GUI (TKINTER)
-# ==========================================
+
 root = tk.Tk()
 root.title("Proyecto RNA - Predicción de Rotación Laboral (MLP)")
 root.geometry("1180x920")
@@ -116,20 +111,18 @@ notebook.add(tab1, text=" 🎨 Pestaña 1: Predicción e Ingreso de Datos (Usuar
 notebook.add(tab2, text=" 📋 Pestaña 2: Gráficas de Validación, Matriz de Confusión y Métricas ")
 notebook.pack(expand=1, fill="both")
 
-# ==========================================
-# PESTAÑA 1: MÓDULO INTERACTIVO DE PREDICCIÓN
-# ==========================================
+
 frame_inputs = ttk.LabelFrame(tab1, text=" Ingreso de Variables del Empleado ")
 frame_inputs.pack(fill="x", padx=15, pady=10)
 
 entries = {}
-# Valores de ejemplo por defecto para un empleado (Salario, Engagement, Satisfacción, Ausencias)
+
 valores_defecto = ["65000", "4.5", "4", "5"]
 
 for i, feature in enumerate(feature_names):
     lbl = ttk.Label(frame_inputs, text=f"{feature.capitalize()}:")
     lbl.grid(row=i, column=0, padx=10, pady=8, sticky="w")
-    
+
     entry = ttk.Entry(frame_inputs, width=15)
     entry.insert(0, valores_defecto[i])
     entry.grid(row=i, column=1, padx=10, pady=8, sticky="w")
@@ -148,7 +141,7 @@ def realizar_prediccion():
         messagebox.showerror("Error de Entrada", "Por favor ingresa valores numéricos válidos en todos los campos.")
         return
 
-    # Escalar y predecir
+
     datos_scaled = scaler.transform([valores])
     pred_class = mlp_opt.predict(datos_scaled)[0]
     probs = mlp_opt.predict_proba(datos_scaled)[0]
@@ -168,7 +161,7 @@ def realizar_prediccion():
 btn_predecir = ttk.Button(frame_inputs, text="⚡ Realizar Predicción", command=realizar_prediccion)
 btn_predecir.grid(row=4, column=0, columnspan=2, pady=10, padx=10)
 
-# Gráfico decorativo de dispersión en Pestaña 1
+
 frame_plot1 = ttk.LabelFrame(tab1, text=" Visualización del Conjunto de Datos (HR Dataset) ")
 frame_plot1.pack(expand=True, fill="both", padx=15, pady=5)
 
@@ -176,17 +169,14 @@ fig1, ax1 = plt.subplots(figsize=(8, 4))
 canvas1 = FigureCanvasTkAgg(fig1, master=frame_plot1)
 canvas1.get_tk_widget().pack(expand=True, fill="both")
 
-# Dispersión: Salario (X[:, 0]) vs Engagement Survey (X[:, 1])
+
 scatter = ax1.scatter(X[:, 0], X[:, 1], c=y, cmap='coolwarm', edgecolor='k', s=50, alpha=0.8)
 ax1.set_title("Distribución de Clases (Salario vs Nivel de Compromiso)", fontsize=11, fontweight='bold')
 ax1.set_xlabel("Salario ($)", fontsize=9)
 ax1.set_ylabel("Engagement Survey (Puntuación)", fontsize=9)
 ax1.grid(True, linestyle='--', alpha=0.5)
 
-# ==========================================
-# PESTAÑA 2: VISUALIZACIONES, MATRIZ Y MÉTRICAS
-# ==========================================
-# Contenedor Superior: Gráficos
+
 frame_plots_tab2 = ttk.LabelFrame(tab2, text=" Evaluación Gráfica: Curva de Pérdida y Matriz de Confusión ")
 frame_plots_tab2.pack(fill="both", expand=True, padx=10, pady=5)
 
@@ -194,14 +184,14 @@ fig2, (ax2_loss, ax2_cm) = plt.subplots(1, 2, figsize=(10, 3.8))
 canvas2 = FigureCanvasTkAgg(fig2, master=frame_plots_tab2)
 canvas2.get_tk_widget().pack(expand=True, fill="both")
 
-# Subplot 1: Curva de Pérdida (Loss Curve - Backpropagation)
+
 ax2_loss.plot(mlp_opt.loss_curve_, color='#1f77b4', linewidth=2.5)
 ax2_loss.set_title("Curva de Pérdida (Loss Curve - Backpropagation)", fontsize=10, fontweight='bold')
 ax2_loss.set_xlabel("Épocas / Iteraciones", fontsize=8)
 ax2_loss.set_ylabel("Pérdida (Loss)", fontsize=8)
 ax2_loss.grid(True, linestyle='--', alpha=0.5)
 
-# Subplot 2: Matriz de Confusión
+
 sns.heatmap(cm_opt, annot=True, fmt='d', cmap='Blues', ax=ax2_cm,
             xticklabels=target_names, yticklabels=target_names, cbar=False)
 ax2_cm.set_title("Matriz de Confusión (RNA Optimizada)", fontsize=10, fontweight='bold')
@@ -211,7 +201,7 @@ ax2_cm.set_ylabel("Clase Real", fontsize=8)
 fig2.tight_layout()
 canvas2.draw()
 
-# Contenedor Medio: Tabla de Métricas
+
 frame_t2_middle = ttk.LabelFrame(tab2, text=" Comparación de Métricas de Validación ")
 frame_t2_middle.pack(fill="x", padx=10, pady=5)
 
@@ -241,7 +231,7 @@ for fila in filas_metricas:
 
 tree.pack(fill="x", padx=5, pady=5)
 
-# Contenedor Inferior: Cuadro Informativo
+
 frame_info = ttk.LabelFrame(tab2, text=" Explicación del Modelo de Red Neuronal ")
 frame_info.pack(fill="x", padx=10, pady=5)
 
@@ -255,5 +245,5 @@ explicacion = """• Perceptrón Multicapa (MLP): Red neuronal Feedforward que p
 txt_info.insert("1.0", explicacion)
 txt_info.config(state="disabled")
 
-# Ejecutar aplicación
+
 root.mainloop()

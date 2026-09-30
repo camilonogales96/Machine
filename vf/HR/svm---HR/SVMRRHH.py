@@ -77,9 +77,7 @@ X_entrenar, X_probar, y_entrenar, y_probar = train_test_split(
     variables_entrada, objetivo, test_size=0.2, random_state=77
 )
 
-# ---------------------------------------------------------------
-# MODELO 1: SVM LINEAL COMPLETO
-# ---------------------------------------------------------------
+
 modelo_full = SVC(kernel='linear', C=1.0, random_state=77)
 modelo_full.fit(X_entrenar, y_entrenar)
 pred_full = modelo_full.predict(X_probar)
@@ -98,7 +96,7 @@ f1_1 = (2 * prec1 * rec1) / (prec1 + rec1) if (prec1 + rec1) else 0
 beta = 0.5
 fbeta1 = ((1 + beta**2) * prec1 * rec1) / (beta**2 * prec1 + rec1) if (beta**2 * prec1 + rec1) else 0
 
-# 2D PCA y Hiperplano Modelo Completo
+
 pca_full = PCA(n_components=2)
 X_train_pca = pca_full.fit_transform(X_entrenar)
 modelo_2d_full = SVC(kernel='linear', C=1.0, random_state=77)
@@ -114,9 +112,7 @@ y1_recta = (-w1[0] * x1_pts - b1) / w1[1]
 y1_margen_sup = (-w1[0] * x1_pts - b1 + 1) / w1[1]
 y1_margen_inf = (-w1[0] * x1_pts - b1 - 1) / w1[1]
 
-# ---------------------------------------------------------------
-# MODELO 2: SVM LINEAL SIGNIFICATIVOS (SEPARACION MULT = 5.5)
-# ---------------------------------------------------------------
+
 perm_imp = permutation_importance(
     modelo_full, X_probar, y_probar, n_repeats=10, random_state=77, scoring='accuracy'
 )
@@ -172,10 +168,10 @@ def crear_panel_metricas(parent, titulo_sub, metrics_tuple):
     (acc, err, rec, spec, prec, f1, fbeta) = metrics_tuple
     card = tk.Frame(parent, bg='#181825', bd=1, relief='solid')
     card.pack(fill='both', expand=True, padx=10, pady=10)
-    
+
     tk.Label(card, text="Métricas Calculadas", bg='#181825', fg='#89b4fa', font=('Segoe UI', 13, 'bold')).pack(pady=(12, 2))
     tk.Label(card, text=titulo_sub, bg='#181825', fg='#6c7086', font=('Segoe UI', 9)).pack(pady=(0, 10))
-    
+
     metrics_list = [
         ('Exactitud (Accuracy)', '(TP + TN) / (P + N)', acc, '#a6e3a1'),
         ('Tasa de Error', '(FP + FN) / (P + N)', err, '#f38ba8'),
@@ -185,7 +181,7 @@ def crear_panel_metricas(parent, titulo_sub, metrics_tuple):
         ('F1-Score', '2 x Prec x Recall / (P+R)', f1, '#fab387'),
         ('F-beta (b=0.5)', '(1+b^2)xP x R / (b^2P+R)', fbeta, '#94e2d5'),
     ]
-    
+
     for name, form, val, color in metrics_list:
         row = tk.Frame(card, bg='#1e1e2e')
         row.pack(fill='x', padx=10, pady=3, ipady=4)
@@ -204,19 +200,19 @@ def embed_figure(parent, fig):
 def crear_interfaz_svm_lineal(parent_widget):
     notebook = ttk.Notebook(parent_widget)
     notebook.pack(fill='both', expand=True, padx=5, pady=5)
-    
-    # ── PESTAÑA 1: Linea de Decision (Hiperplano) + Metric Panel ──────────────
+
+
     tab1 = ttk.Frame(notebook)
     notebook.add(tab1, text='  Línea de Decisión (Hiperplano)  ')
-    
+
     pan1 = ttk.PanedWindow(tab1, orient='horizontal')
     pan1.pack(fill='both', expand=True)
-    
+
     left_frame1 = tk.Frame(pan1, bg='#1e1e2e')
     right_frame1 = tk.Frame(pan1, bg='#181825', width=320)
     pan1.add(left_frame1, weight=3)
     pan1.add(right_frame1, weight=1)
-    
+
     fig1 = mfigure.Figure(figsize=(7, 5), facecolor='#1e1e2e')
     ax1 = fig1.add_subplot(111)
     ax1.set_facecolor('#1e1e2e')
@@ -226,10 +222,10 @@ def crear_interfaz_svm_lineal(parent_widget):
     ax1.plot(x1_pts, y1_recta, 'w-', linewidth=2.5, label='Línea Recta de Decisión (Hiperplano)', zorder=4)
     ax1.plot(x1_pts, y1_margen_sup, 'w--', linewidth=1.2, label='Márgenes (w·x + b = ±1)', zorder=4)
     ax1.plot(x1_pts, y1_margen_inf, 'w--', linewidth=1.2, zorder=4)
-    
+
     sv_full = modelo_2d_full.support_vectors_
     ax1.scatter(sv_full[:, 0], sv_full[:, 1], s=120, facecolors='none', edgecolors='#f9e2af', linewidths=1.6, zorder=5, label='Vectores de Soporte')
-    
+
     ax1.set_xlim(x1_min, x1_max)
     ax1.set_ylim(y1_min, y1_max)
     ax1.set_title('Modelo SVM Lineal: Línea Recta de Decisión y Márgenes', fontsize=11, fontweight='bold', color='#cdd6f4', pad=10)
@@ -241,31 +237,31 @@ def crear_interfaz_svm_lineal(parent_widget):
     ax1.legend(loc='lower right', facecolor='#313244', labelcolor='#cdd6f4', fontsize=8)
     fig1.tight_layout(pad=2)
     embed_figure(left_frame1, fig1)
-    
+
     crear_panel_metricas(right_frame1, "SVM Lineal Modelo Completo", (acc1, err1, rec1, spec1, prec1, f1_1, fbeta1))
-    
-    # ── PESTAÑA 2: Frontera de Decision (Significativos) + Metric Panel ───────
+
+
     tab2 = ttk.Frame(notebook)
     notebook.add(tab2, text='  Frontera de Decisión (Significativos)  ')
-    
+
     pan2 = ttk.PanedWindow(tab2, orient='horizontal')
     pan2.pack(fill='both', expand=True)
-    
+
     left_frame2 = tk.Frame(pan2, bg='#1e1e2e')
     right_frame2 = tk.Frame(pan2, bg='#181825', width=320)
     pan2.add(left_frame2, weight=3)
     pan2.add(right_frame2, weight=1)
-    
+
     fig2 = mfigure.Figure(figsize=(8, 5), facecolor='#1e1e2e')
     ax2a = fig2.add_subplot(1, 2, 1)
     ax2b = fig2.add_subplot(1, 2, 2)
-    
+
     for ax in (ax2a, ax2b):
         ax.set_facecolor('#1e1e2e')
         ax.tick_params(colors='#cdd6f4', labelsize=8)
         for spine in ax.spines.values():
             spine.set_edgecolor('#313244')
-            
+
     y_pos = np.arange(len(vars_significativas))
     colores_sig = ['#89b4fa' if v >= 0 else '#f38ba8' for v in importancias[vars_significativas].values]
     ax2a.barh(y_pos, importancias[vars_significativas].values, color=colores_sig, edgecolor='#1e1e2e', height=0.7)
@@ -274,17 +270,17 @@ def crear_interfaz_svm_lineal(parent_widget):
     ax2a.set_title(f'Variables Retenidas ({len(vars_significativas)})', fontsize=9, fontweight='bold', color='#cdd6f4', pad=8)
     ax2a.set_xlabel('Importancia por Permutación', color='#cdd6f4', fontsize=7)
     ax2a.axvline(0, color='#6c7086', linewidth=0.8, linestyle='--')
-    
+
     ax2b.fill_between(xf_pts, np.clip(yf_recta, yf_min, yf_max), yf_max, alpha=0.25, color='#6baed6')
     ax2b.fill_between(xf_pts, yf_min, np.clip(yf_recta, yf_min, yf_max), alpha=0.25, color='#fb6a4a')
     sc2 = ax2b.scatter(X_sep_train[:, 0], X_sep_train[:, 1], c=y_entrenar, cmap=plt.cm.coolwarm, edgecolors='#cdd6f4', linewidths=0.4, alpha=0.9, zorder=3)
     ax2b.plot(xf_pts, yf_recta, 'w-', linewidth=2.0, label='Hiperplano', zorder=4)
     ax2b.plot(xf_pts, yf_msup, 'w--', linewidth=1.0, label='Márgenes', zorder=4)
     ax2b.plot(xf_pts, yf_minf, 'w--', linewidth=1.0, zorder=4)
-    
+
     sv_sig = modelo_sig_2d.support_vectors_
     ax2b.scatter(sv_sig[:, 0], sv_sig[:, 1], s=110, facecolors='none', edgecolors='#f9e2af', linewidths=1.6, zorder=5, label='Vectores Soporte')
-    
+
     ax2b.set_xlim(xf_min, xf_max)
     ax2b.set_ylim(yf_min, yf_max)
     ax2b.set_title(f'Frontera Lineal (Significativos x{SEPARACION_MULT})', fontsize=9, fontweight='bold', color='#cdd6f4', pad=8)
@@ -293,24 +289,24 @@ def crear_interfaz_svm_lineal(parent_widget):
     ax2b.legend(loc='lower right', facecolor='#313244', labelcolor='#cdd6f4', fontsize=7)
     fig2.tight_layout(pad=2)
     embed_figure(left_frame2, fig2)
-    
+
     crear_panel_metricas(right_frame2, f"SVM Lineal Significativos (x{SEPARACION_MULT})", (acc2, err2, rec2, spec2, prec2, f1_2, fbeta2))
-    
-    # ── PESTAÑA 3: Comparacion y Matrices de Confusion ────────────────────────
+
+
     tab3 = ttk.Frame(notebook)
     notebook.add(tab3, text='  Comparación y Matrices de Confusión  ')
-    
+
     fig3 = mfigure.Figure(figsize=(10, 5), facecolor='#1e1e2e')
     ax3a = fig3.add_subplot(1, 3, 1)
     ax3b = fig3.add_subplot(1, 3, 2)
     ax3c = fig3.add_subplot(1, 3, 3)
-    
+
     for ax in (ax3a, ax3b, ax3c):
         ax.set_facecolor('#181825')
         ax.tick_params(colors='#cdd6f4', labelsize=8)
         for spine in ax.spines.values():
             spine.set_edgecolor('#313244')
-            
+
     sns.heatmap(cm_1, annot=True, fmt='d', cmap='Blues', ax=ax3a, cbar=False, square=True,
                 xticklabels=['Activo', 'Termin'], yticklabels=['Activo', 'Termin'],
                 annot_kws={'size': 14, 'weight': 'bold'})
@@ -318,7 +314,7 @@ def crear_interfaz_svm_lineal(parent_widget):
     ax3a.set_xlabel('Predicción', color='#cdd6f4', fontsize=8)
     ax3a.set_ylabel('Valor Real', color='#cdd6f4', fontsize=8)
     ax3a.set_box_aspect(1)
-    
+
     sns.heatmap(cm_2, annot=True, fmt='d', cmap='Oranges', ax=ax3b, cbar=False, square=True,
                 xticklabels=['Activo', 'Termin'], yticklabels=['Activo', 'Termin'],
                 annot_kws={'size': 14, 'weight': 'bold'})
@@ -326,14 +322,14 @@ def crear_interfaz_svm_lineal(parent_widget):
     ax3b.set_xlabel('Predicción', color='#cdd6f4', fontsize=8)
     ax3b.set_ylabel('Valor Real', color='#cdd6f4', fontsize=8)
     ax3b.set_box_aspect(1)
-    
-    # Gráfica de Barras Comparativa
+
+
     m_names = ['Exactitud', 'Precisión', 'Recall', 'F1-Score']
     vals_m1 = [acc1 * 100, prec1 * 100, rec1 * 100, f1_1 * 100]
     vals_m2 = [acc2 * 100, prec2 * 100, rec2 * 100, f1_2 * 100]
     x_idx = np.arange(len(m_names))
     width = 0.35
-    
+
     b1 = ax3c.bar(x_idx - width/2, vals_m1, width, label='Lineal Completo', color='#89b4fa')
     b2 = ax3c.bar(x_idx + width/2, vals_m2, width, label='Significativos', color='#fab387')
     ax3c.set_xticks(x_idx)
@@ -342,7 +338,7 @@ def crear_interfaz_svm_lineal(parent_widget):
     ax3c.set_ylabel('% Métricas', color='#cdd6f4', fontsize=8)
     ax3c.set_title('Comparación de Métricas (%)', fontsize=10, fontweight='bold', color='#cdd6f4', pad=8)
     ax3c.legend(facecolor='#313244', labelcolor='#cdd6f4', fontsize=8)
-    
+
     for bar in b1:
         ax3c.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1.5, f'{bar.get_height():.1f}%', ha='center', color='#89b4fa', fontsize=7, fontweight='bold')
     for bar in b2:
@@ -350,7 +346,7 @@ def crear_interfaz_svm_lineal(parent_widget):
 
     fig3.tight_layout(pad=2)
     embed_figure(tab3, fig3)
-    
+
     return notebook
 
 if __name__ == '__main__':
@@ -363,6 +359,6 @@ if __name__ == '__main__':
     style.configure('TNotebook', background='#1e1e2e', borderwidth=0)
     style.configure('TNotebook.Tab', background='#313244', foreground='#cdd6f4', padding=[14, 6], font=('Segoe UI', 10, 'bold'))
     style.map('TNotebook.Tab', background=[('selected', '#89b4fa')], foreground=[('selected', '#1e1e2e')])
-    
+
     crear_interfaz_svm_lineal(root)
     root.mainloop()

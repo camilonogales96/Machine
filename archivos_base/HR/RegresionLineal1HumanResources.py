@@ -13,14 +13,12 @@ from sklearn.metrics import (
     confusion_matrix, ConfusionMatrixDisplay, accuracy_score, precision_score, recall_score
 )
 
-# ==========================================
-# 1. CARGA Y LIMPIEZA DE DATOS
-# ==========================================
+
 def cargar_datos():
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
     curr = directorio_actual
     ruta_origen = None
-    
+
     while curr:
         candidato = os.path.join(curr, 'HRDataset_v14.csv')
         if os.path.exists(candidato):
@@ -46,9 +44,7 @@ datos_hr = cargar_datos()
 if datos_hr is None:
     exit()
 
-# ==========================================
-# 2. CONSTRUCCIÓN DE LA APLICACIÓN GUI
-# ==========================================
+
 root = tk.Tk()
 root.title("Proyecto de Regresión y Clasificación - Recursos Humanos")
 root.geometry("1180x920")
@@ -64,9 +60,7 @@ notebook.add(tab1, text=" 🎨 Pestaña 1: Gráfica de Zonas y Multiplicador ")
 notebook.add(tab2, text=" 📋 Pestaña 2: Gráficas de Validación, Matriz de Confusión y Métricas ")
 notebook.pack(expand=1, fill="both")
 
-# ==========================================
-# PESTAÑA 1: GRÁFICA 1 (DISPERSIÓN Y ZONAS)
-# ==========================================
+
 frame_controles = ttk.LabelFrame(tab1, text=" Controles de Ajuste ")
 frame_controles.pack(fill="x", padx=10, pady=5)
 
@@ -101,7 +95,7 @@ canvas1.get_tk_widget().pack(expand=True, fill="both")
 def actualizar_grafico1():
     ax1.clear()
     mult = val_mult.get()
-    
+
     try:
         umbral = float(entry_umbral.get())
     except ValueError:
@@ -144,10 +138,7 @@ btn_aplicar.pack(side="left", padx=10)
 
 actualizar_grafico1()
 
-# ==========================================
-# PESTAÑA 2: MODELO ALINEADO Y VALIDACIÓN
-# ==========================================
-# Modelo 1: Solo variables numéricas sin codificación (Modelo Base)
+
 cols_todas = ['PerfScoreID', 'EngagementSurvey', 'EmpSatisfaction', 'SpecialProjectsCount', 'DaysLateLast30', 'Absences']
 X1 = datos_hr[cols_todas].fillna(0).values
 y = datos_hr['Salary'].values
@@ -161,7 +152,7 @@ m1 = LinearRegression().fit(X1_tr_s, y1_tr)
 p1_tr = m1.predict(X1_tr_s)
 p1_te = m1.predict(X1_te_s)
 
-# Modelo 2 (Modelo Alineado): Incluye variables categóricas codificadas (DeptID / PositionID si existen)
+
 columnas_cat = [col for col in ['DeptID', 'PositionID'] if col in datos_hr.columns]
 df_procesado = pd.get_dummies(datos_hr, columns=columnas_cat, drop_first=True)
 
@@ -178,7 +169,7 @@ m2 = Ridge(alpha=10.0).fit(X2_tr_s, y2_tr)
 p2_tr = m2.predict(X2_tr_s)
 p2_te = m2.predict(X2_te_s)
 
-# Binarización para Matriz de Confusión ($75,000)
+
 umbral_eval = 75000.0
 
 y1_te_bin = (y1_te >= umbral_eval).astype(int)
@@ -199,7 +190,7 @@ rec2 = recall_score(y2_te_bin, p2_te_bin, zero_division=0)
 prec1 = precision_score(y1_te_bin, p1_te_bin, zero_division=0)
 prec2 = precision_score(y2_te_bin, p2_te_bin, zero_division=0)
 
-# Contenedor Superior: Gráficas
+
 frame_plots_tab2 = ttk.LabelFrame(tab2, text=" Evaluación Gráfica: Diagnóstico de Alineación Lineal y Matriz de Confusión ")
 frame_plots_tab2.pack(fill="both", expand=True, padx=10, pady=5)
 
@@ -207,7 +198,7 @@ fig2, (ax2_scatter, ax2_cm) = plt.subplots(1, 2, figsize=(10, 3.8))
 canvas2 = FigureCanvasTkAgg(fig2, master=frame_plots_tab2)
 canvas2.get_tk_widget().pack(expand=True, fill="both")
 
-# Subplot 1: Dispersión Salario Real vs Predicho Alineado
+
 ax2_scatter.scatter(y2_tr, p2_tr, color='blue', alpha=0.6, label='Entrenamiento (Train)')
 ax2_scatter.scatter(y2_te, p2_te, color='red', alpha=0.8, marker='^', label='Prueba (Test)')
 
@@ -221,7 +212,7 @@ ax2_scatter.set_ylabel("Salario Predicho ($)", fontsize=8)
 ax2_scatter.legend(loc='upper left', fontsize=7)
 ax2_scatter.grid(True, linestyle='--', alpha=0.5)
 
-# Subplot 2: Matriz de Confusión Visual
+
 disp = ConfusionMatrixDisplay(confusion_matrix=cm2, display_labels=['Alto (>=75k)', 'Bajo (<75k)'])
 disp.plot(ax=ax2_cm, cmap='Blues', colorbar=False)
 ax2_cm.set_title("Matriz de Confusión (Test - Modelo Alineado)", fontsize=10, fontweight='bold')
@@ -231,7 +222,7 @@ ax2_cm.set_ylabel("Clase Real", fontsize=8)
 fig2.tight_layout()
 canvas2.draw()
 
-# Contenedor Inferior: Tabla de Métricas
+
 frame_t2_middle = ttk.LabelFrame(tab2, text=" Comparación de Métricas de Validación ")
 frame_t2_middle.pack(fill="x", padx=10, pady=5)
 
@@ -262,11 +253,11 @@ for fila in filas_metricas:
 
 tree.pack(fill="x", padx=5, pady=5)
 
-# Cuadro explicativo actualizado con la retroalimentación del líder
+
 frame_info = ttk.LabelFrame(tab2, text=" Explicación del Ajuste y Selección de Variables ")
 frame_info.pack(fill="x", padx=10, pady=5)
 
-# Se incrementó la altura (height=6) para acomodar el nuevo texto sin que se corte
+
 txt_info = tk.Text(frame_info, wrap="word", font=("Arial", 9), height=6)
 txt_info.pack(fill="both", expand=True, padx=5, pady=5)
 
@@ -278,5 +269,5 @@ explicacion = """• Variables Significativas (Agregadas): 'PositionID' (Cargo) 
 txt_info.insert("1.0", explicacion)
 txt_info.config(state="disabled")
 
-# Ejecutar la aplicación
+
 root.mainloop()

@@ -83,9 +83,6 @@ top_features    = coefs.sort_values(ascending=False).head(top_n)
 bottom_features = coefs.sort_values(ascending=True).head(top_n)
 
 
-# ==========================================
-# CALCULO MODELO MEJORADO
-# ==========================================
 num_eliminar = 3
 variables_a_eliminar = coefs.sort_values(ascending=True).head(num_eliminar).index.tolist()
 variables_conservadas = [c for c in variables_entrada.columns if c not in variables_a_eliminar]
@@ -109,7 +106,7 @@ def calcular_metricas(y_true, y_pred, cm):
     prec_macro = report['macro avg']['precision']
     rec_macro = report['macro avg']['recall']
     f1_macro = report['macro avg']['f1-score']
-    
+
     spec_list = []
     for i in range(len(cm)):
         tn = cm.sum() - (cm[i, :].sum() + cm[:, i].sum() - cm[i, i])
@@ -260,9 +257,7 @@ embed_figure(tab3, fig3)
 
 print("\n[INFO] Abriendo ventana interactiva SVM Lineal Vinos...")
 
-# ==========================================
-# PESTAÑA 4: MODELO MEJORADO
-# ==========================================
+
 tab4 = ttk.Frame(notebook)
 notebook.add(tab4, text='  ✨  Modelo Mejorado  ')
 
@@ -300,34 +295,34 @@ def actualizar_pca_mejorado(*args):
     mult = mult_var.get()
     ax_m = ax4
     ax_m.set_facecolor('#1e1e2e')
-    
-    # Límites fijos para evitar que Matplotlib haga auto-zoom
+
+
     mult_max = 3.0
     graf_max_x = np.max(np.abs(X_probar_pca_mej[:, 0])) * mult_max + 2.0
     graf_max_y = np.max(np.abs(X_probar_pca_mej[:, 1])) * mult_max + 2.0
-    
-    # Malla visual fija que abarca todo el espacio posible
+
+
     xx_visual, yy_visual = np.meshgrid(np.arange(-graf_max_x, graf_max_x, 0.1),
                                        np.arange(-graf_max_y, graf_max_y, 0.1))
-    
-    # Predecir las regiones escalando inversamente las coordenadas visuales
+
+
     Z = modelo_svm_2d_mej.predict(np.c_[xx_visual.ravel() / mult, yy_visual.ravel() / mult]).reshape(xx_visual.shape)
-    
+
     clases_sorted = sorted(y_probar.unique())
     cmap_vino = plt.cm.RdYlGn
-    
-    # Zonas de decisión con alpha 0.12 para que el fondo oscuro sobresalga
+
+
     ax_m.contourf(xx_visual, yy_visual, Z, alpha=0.12, cmap='RdYlGn',
                   levels=np.arange(min(clases_sorted)-0.5, max(clases_sorted)+1, 1))
 
-    # Puntos con coordenadas multiplicadas
+
     for i, clase in enumerate(clases_sorted):
         idx = y_probar.values == clase
         ax_m.scatter(X_probar_pca_mej[idx, 0] * mult, X_probar_pca_mej[idx, 1] * mult,
                     label=f'Calidad {clase}', alpha=0.75,
                     color=cmap_vino(i / max(1, len(clases_sorted)-1)), edgecolors='#cdd6f4', linewidths=0.3, zorder=3)
-    
-    # Hiperplanos
+
+
     xp_visual = np.linspace(-graf_max_x, graf_max_x, 400)
     normas_m = np.linalg.norm(modelo_svm_2d_mej.coef_, axis=1)
     idx_principal_m = int(np.argmax(normas_m))
@@ -340,7 +335,7 @@ def actualizar_pca_mejorado(*args):
         else:
             ax_m.plot(xp_visual, yp_visual, color='white', linewidth=1.2, alpha=0.6, linestyle='--', zorder=4)
 
-    # Fijar estrictamente los límites de los ejes para que se note la separación
+
     ax_m.set_xlim(-graf_max_x, graf_max_x)
     ax_m.set_ylim(-graf_max_y, graf_max_y)
 
@@ -363,9 +358,7 @@ mult_combo.bind('<<ComboboxSelected>>', actualizar_pca_mejorado)
 
 actualizar_pca_mejorado()
 
-# ==========================================
-# PESTAÑA 5: VALIDACIÓN Y COMPARACIÓN
-# ==========================================
+
 tab5 = ttk.Frame(notebook)
 notebook.add(tab5, text='  ⚖️  Validación y Comparación  ')
 

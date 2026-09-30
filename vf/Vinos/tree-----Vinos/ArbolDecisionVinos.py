@@ -23,7 +23,7 @@ def cargar_datos_vinos_arbol():
     directorio_actual = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
     curr = directorio_actual
     ruta_origen = None
-    
+
     while curr:
         candidato = os.path.join(curr, 'redwine', 'winequality-red.csv')
         candidato2 = os.path.join(curr, 'winequality-red.csv')
@@ -87,7 +87,7 @@ def crear_interfaz_vinos_arbol(parent_widget):
         especificidad = tn / (tn + fp) if (tn + fp) > 0 else 0.0
         especificidades.append(especificidad)
 
-    # FIGURA 1: Matriz + Frontera
+
     fig1 = mfigure.Figure(figsize=(11, 5))
     canvas1_tmp = FigureCanvasTkAgg(fig1, master=parent_widget)
     canvas1_tmp.draw()
@@ -128,7 +128,7 @@ def crear_interfaz_vinos_arbol(parent_widget):
     ax2.set_ylabel("Componente Principal 2")
     fig1.tight_layout()
 
-    # FIGURA 2: Árbol Completo
+
     fig2 = mfigure.Figure(figsize=(16, 8))
     canvas2_tmp = FigureCanvasTkAgg(fig2, master=parent_widget)
     canvas2_tmp.draw()
@@ -139,7 +139,7 @@ def crear_interfaz_vinos_arbol(parent_widget):
     ax3.set_title("Estructura del Árbol de Decisión (Calidad del Vino)", fontsize=13, fontweight="bold")
     fig2.tight_layout()
 
-    # FIGURA 3: Complejidad y Error (Poda CCP)
+
     modelo_completo = DecisionTreeClassifier(criterion="gini", random_state=77)
     modelo_completo.fit(X_entrenar_normalizado, y_entrenar)
     ruta_poda = modelo_completo.cost_complexity_pruning_path(X_entrenar_normalizado, y_entrenar)
@@ -183,7 +183,7 @@ def crear_interfaz_vinos_arbol(parent_widget):
     axB.legend()
     fig3.tight_layout()
 
-    # FIGURA 4: Árbol Podado Optimizado
+
     fig4 = mfigure.Figure(figsize=(16, 8))
     canvas4_tmp = FigureCanvasTkAgg(fig4, master=parent_widget)
     canvas4_tmp.draw()
@@ -194,7 +194,7 @@ def crear_interfaz_vinos_arbol(parent_widget):
     ax4.set_title(f"Estructura del Árbol Podado Optimizado (ccp_alpha={alpha_rec:.4f})", fontsize=12, fontweight="bold")
     fig4.tight_layout()
 
-    # INTERFAZ PRINCIPAL CON TABLA Y NOTEBOOK
+
     frame_tabla = ttk.LabelFrame(parent_widget, text=f" Reporte Multiclase por Calidad (Exactitud Global: {exactitud*100:.2f}%) ")
     frame_tabla.pack(fill="x", padx=10, pady=5)
 
