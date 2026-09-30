@@ -8,7 +8,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+from sklearn.metrics import (
+    mean_squared_error, r2_score, mean_absolute_error,
+    confusion_matrix, ConfusionMatrixDisplay, accuracy_score, precision_score, recall_score
+)
 
 # ==========================================
 # 1. CARGA Y LIMPIEZA DE DATOS
@@ -51,8 +54,8 @@ if datos_vino is None:
 # 2. CONSTRUCCIÓN DE LA APLICACIÓN GUI
 # ==========================================
 root = tk.Tk()
-root.title("Proyecto de Regresión Lineal - Calidad de Vinos")
-root.geometry("1150x850")
+root.title("Proyecto de Regresión y Clasificación - Calidad de Vinos")
+root.geometry("1180x920")
 
 style = ttk.Style()
 style.theme_use('clam')
@@ -62,7 +65,7 @@ tab1 = ttk.Frame(notebook)
 tab2 = ttk.Frame(notebook)
 
 notebook.add(tab1, text=" 🎨 Pestaña 1: Gráfica de Zonas y Multiplicador ")
-notebook.add(tab2, text=" 📋 Pestaña 2: Gráfica de Validación y Métricas (Diapositiva 1.5) ")
+notebook.add(tab2, text=" 📋 Pestaña 2: Gráficas de Validación, Matriz de Confusión y Métricas ")
 notebook.pack(expand=1, fill="both")
 
 # ==========================================
@@ -147,13 +150,10 @@ btn_aplicar.pack(side="left", padx=10)
 actualizar_grafico1()
 
 # ==========================================
-# PESTAÑA 2: GRÁFICA 2 Y VALIDACIÓN (DIAPOSITIVA 1.5)
+# PESTAÑA 2: MODELO ALINEADO Y VALIDACIÓN
 # ==========================================
+# Modelo 1: Todas las variables químicas (Modelo Base)
 cols_todas = [c for c in datos_vino.columns if c != 'quality']
-# Solo nos quedamos con las variables que tienen mayor correlación matemática con la calidad
-cols_filtradas = ['alcohol', 'volatile acidity', 'sulphates', 'citric acid']
-
-# Modelo 1: Todas las variables
 X1 = datos_vino[cols_todas].values
 y = datos_vino['quality'].values
 X1_tr, X1_te, y1_tr, y1_te = train_test_split(X1, y, test_size=0.2, random_state=42)
@@ -166,62 +166,97 @@ m1 = LinearRegression().fit(X1_tr_s, y1_tr)
 p1_tr = m1.predict(X1_tr_s)
 p1_te = m1.predict(X1_te_s)
 
-# Modelo 2: Variables seleccionadas (Modelo Mejorado para evitar subajuste)
-X2 = datos_vino[cols_filtradas].values
+# Modelo 2 (Modelo Alineado): Solo químicos de alta correlación + Ridge
+cols_modelo2 = ['alcohol', 'volatile acidity', 'sulphates', 'citric acid']
+X2 = datos_vino[cols_modelo2].values
+
 X2_tr, X2_te, y2_tr, y2_te = train_test_split(X2, y, test_size=0.2, random_state=42)
 
 scaler2 = StandardScaler()
 X2_tr_s = scaler2.fit_transform(X2_tr)
 X2_te_s = scaler2.transform(X2_te)
 
-m2 = Ridge(alpha=1.0).fit(X2_tr_s, y2_tr)
+m2 = Ridge(alpha=10.0).fit(X2_tr_s, y2_tr)
 p2_tr = m2.predict(X2_tr_s)
 p2_te = m2.predict(X2_te_s)
 
-# Contenedor Superior: Gráfica 2 (Valores Reales vs Predichos)
-frame_plot2 = ttk.LabelFrame(tab2, text=" Gráfica 2: Evaluador de Ajuste (Valores Reales vs. Predicciones del Modelo) ")
-frame_plot2.pack(fill="both", expand=True, padx=10, pady=5)
+# Binarización para Matriz de Confusión (Premium: >= 6.5)
+umbral_eval = 6.5
 
-fig2, ax2 = plt.subplots(figsize=(9, 3.8))
-canvas2 = FigureCanvasTkAgg(fig2, master=frame_plot2)
+y1_te_bin = (y1_te >= umbral_eval).astype(int)
+p1_te_bin = (p1_te >= umbral_eval).astype(int)
+
+y2_te_bin = (y2_te >= umbral_eval).astype(int)
+p2_te_bin = (p2_te >= umbral_eval).astype(int)
+
+cm2 = confusion_matrix(y2_te_bin, p2_te_bin, labels=[1, 0])
+tn2, fp2, fn2, tp2 = confusion_matrix(y2_te_bin, p2_te_bin, labels=[0, 1]).ravel()
+
+acc1 = accuracy_score(y1_te_bin, p1_te_bin)
+acc2 = accuracy_score(y2_te_bin, p2_te_bin)
+
+rec1 = recall_score(y1_te_bin, p1_te_bin, zero_division=0)
+rec2 = recall_score(y2_te_bin, p2_te_bin, zero_division=0)
+
+prec1 = precision_score(y1_te_bin, p1_te_bin, zero_division=0)
+prec2 = precision_score(y2_te_bin, p2_te_bin, zero_division=0)
+
+# Contenedor Superior: Gráficas
+frame_plots_tab2 = ttk.LabelFrame(tab2, text=" Evaluación Gráfica: Diagnóstico de Alineación Lineal y Matriz de Confusión ")
+frame_plots_tab2.pack(fill="both", expand=True, padx=10, pady=5)
+
+fig2, (ax2_scatter, ax2_cm) = plt.subplots(1, 2, figsize=(10, 3.8))
+canvas2 = FigureCanvasTkAgg(fig2, master=frame_plots_tab2)
 canvas2.get_tk_widget().pack(expand=True, fill="both")
 
-# Dibujar Gráfica 2
-ax2.scatter(y2_tr, p2_tr, color='blue', alpha=0.6, label='Entrenamiento (Train)')
-ax2.scatter(y2_te, p2_te, color='red', alpha=0.8, marker='^', label='Prueba / Generalización (Test)')
+# Subplot 1: Dispersión Calidad Real vs Predicha Alineada
+ax2_scatter.scatter(y2_tr, p2_tr, color='blue', alpha=0.6, label='Entrenamiento (Train)')
+ax2_scatter.scatter(y2_te, p2_te, color='red', alpha=0.8, marker='^', label='Prueba (Test)')
 
 min_val = min(y.min(), min(p2_tr.min(), p2_te.min()))
 max_val = max(y.max(), max(p2_tr.max(), p2_te.max()))
-ax2.plot([min_val, max_val], [min_val, max_val], 'k--', label='Predicción Perfecta (1:1)')
+ax2_scatter.plot([min_val, max_val], [min_val, max_val], 'k--', linewidth=2, label='Alineación Perfecta (1:1)')
 
-ax2.set_title("Gráfica 2: Diagnóstico de Ajuste - Calidad Real vs. Calidad Predicha", fontsize=11, fontweight='bold')
-ax2.set_xlabel("Calidad Real del Vino", fontsize=9)
-ax2.set_ylabel("Calidad Predicha por el Modelo", fontsize=9)
-ax2.legend(loc='upper left', fontsize=8)
-ax2.grid(True, linestyle='--', alpha=0.5)
+ax2_scatter.set_title("Gráfica 2: Calidad Real vs. Predicha (Alineado)", fontsize=10, fontweight='bold')
+ax2_scatter.set_xlabel("Calidad Real", fontsize=8)
+ax2_scatter.set_ylabel("Calidad Predicha", fontsize=8)
+ax2_scatter.legend(loc='upper left', fontsize=7)
+ax2_scatter.grid(True, linestyle='--', alpha=0.5)
+
+# Subplot 2: Matriz de Confusión Visual
+disp = ConfusionMatrixDisplay(confusion_matrix=cm2, display_labels=['Premium (>=6.5)', 'Regular (<6.5)'])
+disp.plot(ax=ax2_cm, cmap='Greens', colorbar=False)
+ax2_cm.set_title("Matriz de Confusión (Test - Modelo Mejorado)", fontsize=10, fontweight='bold')
+ax2_cm.set_xlabel("Clase Predicha", fontsize=8)
+ax2_cm.set_ylabel("Clase Real", fontsize=8)
+
+fig2.tight_layout()
 canvas2.draw()
 
 # Contenedor Inferior: Tabla de Métricas
 frame_t2_middle = ttk.LabelFrame(tab2, text=" Comparación de Métricas de Validación ")
 frame_t2_middle.pack(fill="x", padx=10, pady=5)
 
-columnas = ("Métrica", "Modelo Original (Todas las vars)", "Modelo Mejorado (Vars Seleccionadas)")
-tree = ttk.Treeview(frame_t2_middle, columns=columnas, show="headings", height=5)
+columnas = ("Métrica", "Modelo con Todas las Variables", "Modelo Mejorado (Variables Filtradas + Ridge)")
+tree = ttk.Treeview(frame_t2_middle, columns=columnas, show="headings", height=8)
 
-tree.heading("Métrica", text="Métrica de Validación (Diapositiva 1.5)")
-tree.heading("Modelo Original (Todas las vars)", text="Modelo Original")
-tree.heading("Modelo Mejorado (Vars Seleccionadas)", text="Modelo Mejorado")
+tree.heading("Métrica", text="Métrica de Evaluación")
+tree.heading("Modelo con Todas las Variables", text="Modelo Base")
+tree.heading("Modelo Mejorado (Variables Filtradas + Ridge)", text="Modelo Alineado")
 
 tree.column("Métrica", width=340)
-tree.column("Modelo Original (Todas las vars)", width=230, anchor="center")
-tree.column("Modelo Mejorado (Vars Seleccionadas)", width=230, anchor="center")
+tree.column("Modelo con Todas las Variables", width=230, anchor="center")
+tree.column("Modelo Mejorado (Variables Filtradas + Ridge)", width=230, anchor="center")
 
 filas_metricas = [
-    ("MAE Entrenamiento (Train Error)", f"{mean_absolute_error(y1_tr, p1_tr):.4f}", f"{mean_absolute_error(y2_tr, p2_tr):.4f}"),
     ("MAE Generalización (Test Error)", f"{mean_absolute_error(y1_te, p1_te):.4f}", f"{mean_absolute_error(y2_te, p2_te):.4f}"),
     ("RMSE Generalización (Test RMSE)", f"{np.sqrt(mean_squared_error(y1_te, p1_te)):.4f}", f"{np.sqrt(mean_squared_error(y2_te, p2_te)):.4f}"),
     ("R² Generalización (Test R²)", f"{r2_score(y1_te, p1_te):.4f}", f"{r2_score(y2_te, p2_te):.4f}"),
-    ("Diagnóstico de Desempeño", "Ruido por variables poco útiles", "Mayor estabilidad frente a generalización")
+    ("Exactitud / Accuracy ((TP+TN)/(P+N))", f"{acc1 * 100:.1f}%", f"{acc2 * 100:.1f}%"),
+    ("Sensibilidad / Recall (TP/P)", f"{rec1 * 100:.1f}%", f"{rec2 * 100:.1f}%"),
+    ("Precisión (TP/(TP+FP))", f"{prec1 * 100:.1f}%", f"{prec2 * 100:.1f}%"),
+    ("Matriz de Confusión (TP / FP / FN / TN)", "-", f"TP:{tp2} | FP:{fp2} | FN:{fn2} | TN:{tn2}"),
+    ("Diagnóstico de Linealidad", "Ligero desvío por ruido químico", "Puntos ajustados y mayor estabilidad")
 ]
 
 for fila in filas_metricas:
@@ -229,16 +264,16 @@ for fila in filas_metricas:
 
 tree.pack(fill="x", padx=5, pady=5)
 
-# Cuadro explicativo de la Diapositiva 1.5
-frame_info = ttk.LabelFrame(tab2, text=" Análisis Teórico según Diapositiva 1.5 ")
+# Cuadro explicativo actualizado con la explicación del ajuste (Reemplaza al Análisis Teórico)
+frame_info = ttk.LabelFrame(tab2, text=" Explicación del Ajuste y Selección de Variables ")
 frame_info.pack(fill="x", padx=10, pady=5)
 
-txt_info = tk.Text(frame_info, wrap="word", font=("Arial", 9), height=4)
+txt_info = tk.Text(frame_info, wrap="word", font=("Arial", 9), height=5)
 txt_info.pack(fill="both", expand=True, padx=5, pady=5)
 
-explicacion = """• Generalización y Robustez: El 'Test Error' (Error de Generalización) nos indica qué tan bien rinde el modelo ante muestras nuevas de vinos.
-• Subajuste vs Sobreajuste: Al remover las variables químicas con baja correlación y conservar las determinantes ('alcohol', 'volatile acidity', 'sulphates'), reducimos el ruido. Esto previene el sobreajuste (donde el modelo memoriza el ruido del entrenamiento) y mejora la capacidad de ajuste a datos invisibles.
-• Error Irreducible: El modelo no es 100% perfecto porque existe variación (Bias) natural en la degustación de vinos."""
+explicacion = """• Variables Conservadas: 'alcohol', 'volatile acidity', 'sulphates' y 'citric acid'. Estas variables mostraron la mayor correlación matemática, por lo que se mantuvieron para capturar la base química que define la calidad del vino.
+• Variables Descartadas: Se omitieron componentes de baja correlación (como 'residual sugar', 'pH' o 'free sulfur dioxide'), ya que introducen ruido al modelo lineal sin aportar precisión a la predicción final.
+• Alineación 1:1 y Ridge: Al filtrar las variables ruidosas y aplicar regularización Ridge, el modelo estabiliza los coeficientes, mejorando la generalización (Test Error) y alineando mejor las predicciones a la diagonal real."""
 
 txt_info.insert("1.0", explicacion)
 txt_info.config(state="disabled")
