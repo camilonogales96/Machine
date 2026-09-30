@@ -110,6 +110,18 @@ class UnifiedApp:
                 'path': ['Vinos', 'svm---Vinos', 'SVM_VINO_NO_LINEAL.py'],
                 'func': 'crear_interfaz_vinos_svm_nolineal'
             },
+            'vinos_rna': {
+                'cat': 'VINOS',
+                'label': '🧠 Red Neuronal (RNA)',
+                'path': ['Vinos', 'RNA--Vinos', 'RNA-Vinos.py'],
+                'func': 'crear_interfaz_vinos_rna'
+            },
+            'vinos_resultados': {
+                'cat': 'VINOS',
+                'label': '🏆 Resultados y Comparativa',
+                'path': ['Vinos', 'resultados_vinos.py'],
+                'func': 'crear_interfaz_vinos_resultados'
+            },
             'hr_regresion': {
                 'cat': 'HR',
                 'label': '📈 Regresión Lineal',
@@ -134,6 +146,18 @@ class UnifiedApp:
                 'path': ['HR', 'svm---HR', 'NoLineal.py'],
                 'func': 'crear_interfaz_svm_nolineal'
             },
+            'hr_rna': {
+                'cat': 'HR',
+                'label': '🧠 Red Neuronal (RNA)',
+                'path': ['HR', 'RNA--HR', 'RNA-RH.py'],
+                'func': 'crear_interfaz_hr_rna'
+            },
+            'hr_resultados': {
+                'cat': 'HR',
+                'label': '🏆 Resultados y Comparativa',
+                'path': ['HR', 'resultados_hr.py'],
+                'func': 'crear_interfaz_hr_resultados'
+            },
         }
 
         self.buttons = {}
@@ -143,12 +167,12 @@ class UnifiedApp:
     def construir_menu(self):
         # Categórica 1: VINOS
         tk.Label(self.sidebar, text="🍷 DATASET VINOS", bg='#181825', fg='#f9e2af', font=('Segoe UI', 9, 'bold'), anchor='w').pack(fill='x', padx=15, pady=(15, 5))
-        for key in ['vinos_regresion', 'vinos_arbol', 'vinos_svm_lineal', 'vinos_svm_nolineal']:
+        for key in ['vinos_regresion', 'vinos_arbol', 'vinos_svm_lineal', 'vinos_svm_nolineal', 'vinos_rna', 'vinos_resultados']:
             self.crear_boton_menu(key)
 
         # Categórica 2: RECURSOS HUMANOS
         tk.Label(self.sidebar, text="👥 RECURSOS HUMANOS (HR)", bg='#181825', fg='#a6e3a1', font=('Segoe UI', 9, 'bold'), anchor='w').pack(fill='x', padx=15, pady=(20, 5))
-        for key in ['hr_regresion', 'hr_arbol', 'hr_svm_lineal', 'hr_svm_nolineal']:
+        for key in ['hr_regresion', 'hr_arbol', 'hr_svm_lineal', 'hr_svm_nolineal', 'hr_rna', 'hr_resultados']:
             self.crear_boton_menu(key)
 
     def crear_boton_menu(self, key):
