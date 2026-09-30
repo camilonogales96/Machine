@@ -18,7 +18,9 @@ Este proyecto es un entorno de Machine Learning interactivo que realiza la limpi
 Sigue estos comandos paso a paso en tu terminal (PowerShell, CMD o Bash) para preparar el entorno e iniciar el proyecto:
 
 ### 1. Clonar o Abrir el Proyecto
-Abre la terminal en la carpeta raíz del proyecto:
+Abre la terminal en la carpeta raíz del proyecto. El link del proyecto es:
+
+https://github.com/camilonogales96/Machine.git
 
 ### 2. Crear un Entorno Virtual (Recomendado)
 Crear un entorno virtual ayuda a aislar las dependencias del proyecto.

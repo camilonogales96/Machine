@@ -38,8 +38,9 @@ def limpiar_dataset_hr():
 
     objetivo = df_num['Termd']
     columnas_descartar = ['Termd']
-    if 'EmpID' in df_num.columns:
-        columnas_descartar.append('EmpID')
+    for col_fuga in ['EmpID', 'EmpStatusID', 'Zip']:
+        if col_fuga in df_num.columns:
+            columnas_descartar.append(col_fuga)
 
     variables_entrada = df_num.drop(columns=columnas_descartar)
 

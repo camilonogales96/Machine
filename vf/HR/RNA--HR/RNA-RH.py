@@ -62,8 +62,9 @@ def cargar_datos_hr():
         df_num = df_raw[num_cols].fillna(0)
         y = df_num['Termd'].values
         cols_drop = ['Termd']
-        if 'EmpID' in df_num.columns:
-            cols_drop.append('EmpID')
+        for col_fuga in ['EmpID', 'EmpStatusID', 'Zip']:
+            if col_fuga in df_num.columns:
+                cols_drop.append(col_fuga)
         X = df_num.drop(columns=cols_drop)
         return X, y
     else:

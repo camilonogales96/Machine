@@ -55,7 +55,8 @@ def cargar_datos_hr_limpios():
     if ruta_limpio:
         df = pd.read_csv(ruta_limpio)
         objetivo = df['Termd']
-        variables_entrada = df.drop('Termd', axis=1)
+        cols_drop = [c for c in ['Termd', 'EmpID', 'EmpStatusID', 'Zip'] if c in df.columns]
+        variables_entrada = df.drop(columns=cols_drop)
         return variables_entrada, objetivo
     elif ruta_raw:
         df = pd.read_csv(ruta_raw).drop_duplicates().dropna(subset=['Termd'])
@@ -63,8 +64,9 @@ def cargar_datos_hr_limpios():
         df_num = df[vars_num].fillna(0)
         objetivo = df_num['Termd']
         columnas_descartar = ['Termd']
-        if 'EmpID' in df_num.columns:
-            columnas_descartar.append('EmpID')
+        for col_fuga in ['EmpID', 'EmpStatusID', 'Zip']:
+            if col_fuga in df_num.columns:
+                columnas_descartar.append(col_fuga)
         variables_entrada = df_num.drop(columns=columnas_descartar)
         scaler = StandardScaler()
         X_scaled = pd.DataFrame(scaler.fit_transform(variables_entrada), columns=variables_entrada.columns)

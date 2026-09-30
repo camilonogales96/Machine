@@ -49,7 +49,8 @@ def cargar_datos_hr():
     if ruta_limpio:
         df = pd.read_csv(ruta_limpio)
         y = df['Termd'].values
-        X = df.drop(columns=['Termd'])
+        cols_drop = [c for c in ['Termd', 'EmpID', 'EmpStatusID', 'Zip'] if c in df.columns]
+        X = df.drop(columns=cols_drop)
         return X, y
     elif ruta_raw:
         df_raw = pd.read_csv(ruta_raw).drop_duplicates().dropna(subset=['Termd'])
@@ -57,8 +58,9 @@ def cargar_datos_hr():
         df_num = df_raw[num_cols].fillna(0)
         y = df_num['Termd'].values
         cols_drop = ['Termd']
-        if 'EmpID' in df_num.columns:
-            cols_drop.append('EmpID')
+        for col_fuga in ['EmpID', 'EmpStatusID', 'Zip']:
+            if col_fuga in df_num.columns:
+                cols_drop.append(col_fuga)
         X = df_num.drop(columns=cols_drop)
         return X, y
     else:
@@ -116,9 +118,9 @@ def crear_interfaz_hr_resultados(parent_widget):
     for nombre, preds in modelos:
         acc = accuracy_score(y_te, preds)
         err = 1.0 - acc
-        prec = precision_score(y_te, preds, average='weighted', zero_division=0)
-        rec = recall_score(y_te, preds, average='weighted', zero_division=0)
-        f1 = f1_score(y_te, preds, average='weighted', zero_division=0)
+        prec = precision_score(y_te, preds, zero_division=0)
+        rec = recall_score(y_te, preds, zero_division=0)
+        f1 = f1_score(y_te, preds, zero_division=0)
         resultados.append({
             'Nombre': nombre,
             'Accuracy': acc,
