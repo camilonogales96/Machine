@@ -32,14 +32,14 @@ def cargar_datos_vinos():
         candidato_limpio = os.path.join(curr, 'dataset_vino_limpio.csv')
         candidato_raw    = os.path.join(curr, 'winequality-red.csv')
         candidato_sub    = os.path.join(curr, 'redwine', 'winequality-red.csv')
-        if os.path.exists(candidato_limpio):
-            ruta_origen = candidato_limpio
-            break
-        elif os.path.exists(candidato_raw):
+        if os.path.exists(candidato_raw):
             ruta_origen = candidato_raw
             break
         elif os.path.exists(candidato_sub):
             ruta_origen = candidato_sub
+            break
+        elif os.path.exists(candidato_limpio):
+            ruta_origen = candidato_limpio
             break
         parent = os.path.dirname(curr)
         if parent == curr:

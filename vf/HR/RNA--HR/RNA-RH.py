@@ -51,12 +51,7 @@ def cargar_datos_hr():
         elif os.path.exists(cand_raw_cwd):
             ruta_raw = cand_raw_cwd
 
-    if ruta_limpio:
-        df = pd.read_csv(ruta_limpio)
-        y = df['Termd'].values
-        X = df.drop(columns=['Termd'])
-        return X, y
-    elif ruta_raw:
+    if ruta_raw:
         df_raw = pd.read_csv(ruta_raw).drop_duplicates().dropna(subset=['Termd'])
         num_cols = df_raw.select_dtypes(include=['int64', 'float64']).columns.tolist()
         df_num = df_raw[num_cols].fillna(0)
@@ -66,6 +61,12 @@ def cargar_datos_hr():
             if col_fuga in df_num.columns:
                 cols_drop.append(col_fuga)
         X = df_num.drop(columns=cols_drop)
+        return X, y
+    elif ruta_limpio:
+        df = pd.read_csv(ruta_limpio)
+        y = df['Termd'].values
+        cols_drop = [c for c in ['Termd', 'EmpID', 'EmpStatusID', 'Zip'] if c in df.columns]
+        X = df.drop(columns=cols_drop)
         return X, y
     else:
 
